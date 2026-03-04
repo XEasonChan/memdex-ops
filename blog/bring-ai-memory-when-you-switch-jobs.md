@@ -36,8 +36,8 @@ For someone who's used AI heavily for a year, the switching cost isn't just lear
 
 ## How the Official Tool Works
 
-![The AI industry is beginning to address the portability gap](https://awesomeagents.ai/images/news/claude-import-memory-switch-providers.jpg)
-*Anthropic's memory import tool, launched March 2026, is the industry's first serious attempt at addressing AI context portability. (Source: AwesomeAgents)*
+<img width="2600" height="1463" alt="image" src="https://github.com/user-attachments/assets/f1d5ebd1-e861-437d-8d08-c2513cb626eb" />
+*Anthropic's memory import tool, launched March 2026, is the industry's first serious attempt at addressing AI context portability. (Source: Claude Blog)*
 
 Good news: the AI industry has started to address this problem. On March 2, 2026, Anthropic launched `claude.com/import-memory` — a tool that lets you bring your AI memory from ChatGPT, Gemini, or Copilot into Claude.
 
