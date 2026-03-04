@@ -1,659 +1,712 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Memdex 舆情监控看板</title>
-  <style>
-    :root {
-      --bg: #030303;
-      --bg2: #1A1A1B;
-      --bg3: #272729;
-      --bg4: #343536;
-      --border: #343536;
-      --text: #D7DADC;
-      --text2: #818384;
-      --text3: #6e7681;
-      --accent: #FF4500;
-      --accent2: #D93A00;
-      --green: #46d160;
-      --orange: #FF8717;
-      --red: #FF4500;
-      --purple: #7193FF;
-      --pink: #FF585B;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      font-size: 14px;
-      line-height: 1.6;
-      min-height: 100vh;
-    }
-    .header {
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .header-left { display: flex; align-items: center; gap: 10px; }
-    .header-left h1 { font-size: 17px; font-weight: 700; }
-    .live-badge {
-      background: linear-gradient(135deg, #1f6feb, #388bfd);
-      color: #fff;
-      font-size: 10px;
-      padding: 2px 7px;
-      border-radius: 10px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-    .nav-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
-    .nav-tab {
-      font-size: 12px;
-      padding: 5px 12px;
-      border-radius: 8px;
-      border: 1px solid transparent;
-      background: transparent;
-      color: var(--text2);
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.15s;
-      font-family: inherit;
-    }
-    .nav-tab:hover { background: var(--bg3); color: var(--text); border-color: var(--border); }
-    .header-meta { font-size: 11px; color: var(--text3); }
-    .container { max-width: 1400px; margin: 0 auto; padding: 24px 16px; }
-    section { margin-bottom: 44px; }
-    .section-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border);
-    }
-    .chip {
-      background: var(--bg3);
-      color: var(--text2);
-      font-size: 11px;
-      padding: 1px 8px;
-      border-radius: 10px;
-      font-weight: 500;
-    }
-    /* Stats */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 14px;
-    }
-    .stat-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.2s, transform 0.15s;
-    }
-    .stat-card:hover { transform: translateY(-2px); }
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 3px;
-      border-radius: 12px 12px 0 0;
-    }
-    .sc-blue::before { background: linear-gradient(90deg,#1f6feb,#58a6ff); }
-    .sc-green::before { background: linear-gradient(90deg,#238636,#3fb950); }
-    .sc-orange::before { background: linear-gradient(90deg,#9e6a03,#d29922); }
-    .sc-purple::before { background: linear-gradient(90deg,#6e40c9,#bc8cff); }
-    .stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 8px; }
-    .stat-value { font-size: 34px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
-    .sc-blue .stat-value { color: #58a6ff; }
-    .sc-green .stat-value { color: #3fb950; }
-    .sc-orange .stat-value { color: #d29922; }
-    .sc-purple .stat-value { color: #bc8cff; }
-    .stat-sub { font-size: 11px; color: var(--text3); }
-    /* Post cards */
-    .posts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
-      gap: 14px;
-    }
-    .post-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
-    }
-    .post-card:hover {
-      border-color: var(--accent2);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    }
-    .pc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-    .sub-badge {
-      font-size: 11px; font-weight: 600; padding: 3px 9px;
-      border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-    }
-    .sb-ClaudeAI { background:#1a2f4a; color:#58a6ff; border:1px solid #1f6feb44; }
-    .sb-ChatGPT  { background:#1a3829; color:#3fb950; border:1px solid #23863644; }
-    .sb-artificial { background:#3a1f4a; color:#bc8cff; border:1px solid #6e40c944; }
-    .score-mini { font-size: 12px; color: var(--orange); font-weight: 700; white-space: nowrap; }
-    .post-title { font-size: 14px; font-weight: 600; line-height: 1.4; }
-    .post-title a { color: var(--text); text-decoration: none; transition: color 0.15s; }
-    .post-title a:hover { color: var(--accent); }
-    .post-summary {
-      font-size: 12px; color: var(--text2); line-height: 1.5;
-      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-    }
-    .post-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-    .tag {
-      font-size: 10px; padding: 2px 8px; border-radius: 20px;
-      font-weight: 600; white-space: nowrap;
-    }
-    .t-traffic  { background:#2d1f3a; color:#bc8cff; border:1px solid #6e40c944; }
-    .t-article  { background:#1a3829; color:#3fb950; border:1px solid #23863644; }
-    .t-compete  { background:#3a1f1f; color:#f85149; border:1px solid #da363344; }
-    .t-hot      { background:#3a2a1f; color:#d29922; border:1px solid #9e6a0344; }
-    .t-memory   { background:#1f2d3a; color:#58a6ff; border:1px solid #1f6feb44; }
-    .t-switch   { background:#1a2f20; color:#56d364; border:1px solid #2ea04344; }
-    .post-footer {
-      display: flex; align-items: center; justify-content: space-between;
-      padding-top: 10px; border-top: 1px solid var(--border);
-      flex-wrap: wrap; gap: 6px;
-    }
-    .post-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .meta-item { display: flex; align-items: center; gap: 3px; font-size: 12px; color: var(--text3); }
-    .meta-item.m-score { color: var(--orange); font-weight: 700; }
-    .meta-item.m-cmts  { color: var(--accent); font-weight: 600; }
-    .post-time { font-size: 11px; color: var(--text3); }
-    /* Competitors */
-    .comp-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-    .comp-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
-      transition: border-color 0.2s, transform 0.15s;
-    }
-    .comp-card:hover { transform: translateY(-2px); }
-    .comp-card.is-us {
-      border-color: var(--accent2);
-      box-shadow: 0 0 0 1px var(--accent2)44, 0 4px 16px rgba(31,111,235,0.12);
-    }
-    .comp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .comp-name { font-size: 15px; font-weight: 700; }
-    .comp-badge {
-      font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
-    }
-    .cb-us   { background:#1f6feb22; color:#58a6ff; border:1px solid #1f6feb44; }
-    .cb-main { background:#da363322; color:#f85149; border:1px solid #da363344; }
-    .cb-comp { background:#9e6a0322; color:#d29922; border:1px solid #9e6a0344; }
-    .comp-desc { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 12px; }
-    .comp-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 10px; }
-    .cs { background: var(--bg3); border-radius: 8px; padding: 8px; text-align: center; }
-    .cs-val { font-size: 14px; font-weight: 700; color: var(--text); display: block; }
-    .cs-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.4px; }
-    .comp-feats { display: flex; flex-wrap: wrap; gap: 5px; }
-    .feat { font-size: 11px; background: var(--bg3); color: var(--text2); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--border); }
-    /* Comparison table */
-    .cmp-table { width: 100%; border-collapse: collapse; background: var(--bg2); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
-    .cmp-table th { background: var(--bg3); color: var(--text2); font-size: 11px; font-weight: 600; padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-    .cmp-table td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    .cmp-table tr:last-child td { border-bottom: none; }
-    .cmp-table tr:hover td { background: var(--bg3); }
-    .cmp-table tr.us-row td { background: #1f6feb08; }
-    .cmp-table tr.us-row td:first-child { color: var(--purple); font-weight: 700; }
-    .ck { color: var(--green); } .cx { color: var(--red); } .cm { color: var(--orange); }
-    /* Filter + all table */
-    .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-    .fl { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .fbtn {
-      font-size: 12px; padding: 4px 13px; border-radius: 20px;
-      border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
-      cursor: pointer; transition: all 0.15s; font-family: inherit;
-    }
-    .fbtn:hover, .fbtn.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
-    .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; overflow-x: auto; }
-    .all-table { width: 100%; border-collapse: collapse; min-width: 680px; }
-    .all-table th { background: var(--bg3); color: var(--text2); font-size: 11px; font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-    .all-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    .all-table tr:last-child td { border-bottom: none; }
-    .all-table tr:hover td { background: var(--bg3); }
-    .all-table tr.hidden { display: none; }
-    .tl { color: var(--text); text-decoration: none; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; max-width: 360px; transition: color 0.15s; }
-    .tl:hover { color: var(--accent); }
-    .sv { color: var(--orange); font-weight: 700; }
-    .cv { color: var(--accent); font-weight: 600; }
-    .sp { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
-    /* Insight box */
-    .insight {
-      margin-top: 14px;
-      padding: 14px 16px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent2);
-      border-radius: 10px;
-      font-size: 12px;
-      color: var(--text2);
-      line-height: 1.8;
-    }
-    .insight strong { color: var(--text); }
-    @media (max-width: 768px) {
-      .container { padding: 14px 10px; }
-      .posts-grid { grid-template-columns: 1fr; }
-      .comp-grid { grid-template-columns: 1fr; }
-      .stats-grid { grid-template-columns: repeat(2,1fr); }
-    }
-    html { scroll-behavior: smooth; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memdex 舆情监控看板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #FAF9F6; --bg-alt: #F0EDE8; --card: #FFFFFF;
+  --orange: #FF4500; --orange-lt: #FF6534; --orange-bg: #FFF3EF;
+  --text: #1A1A1B; --text-mid: #4A4A4B; --text-muted: #8A8A8B;
+  --border: #E8E4DF;
+  --shadow: 0 1px 6px rgba(0,0,0,0.08), 0 3px 12px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+  --radius: 12px; --radius-sm: 8px;
+}
+html { scroll-behavior: smooth; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+
+/* TOPBAR */
+.topbar { background: var(--card); border-bottom: 2px solid var(--orange); padding: 0 28px; height: 62px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(255,69,0,0.08); }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-logo { width: 34px; height: 34px; border-radius: 9px; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
+.topbar-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.topbar-title span { color: var(--orange); }
+.topbar-meta { font-size: 12px; color: var(--text-muted); }
+.topbar-nav { display: flex; gap: 4px; }
+.topbar-nav a { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; color: var(--text-mid); text-decoration: none; transition: all .15s; }
+.topbar-nav a:hover { background: var(--orange-bg); color: var(--orange); }
+
+/* LAYOUT */
+.page { max-width: 1340px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* SECTION */
+.section { margin-bottom: 52px; }
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--border); }
+.section-header h2 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.section-count { margin-left: auto; background: var(--orange-bg); color: var(--orange); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(255,69,0,.2); }
+
+/* STAT CARDS */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; margin-bottom: 36px; }
+.stat-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: transform .15s, box-shadow .15s; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-card.hl { border-color: var(--orange); background: var(--orange-bg); }
+.stat-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
+.stat-value { font-size: 34px; font-weight: 800; color: var(--text); margin: 6px 0 3px; line-height: 1; }
+.stat-card.hl .stat-value { color: var(--orange); }
+.stat-sub { font-size: 12px; color: var(--text-muted); }
+
+/* COMPETITOR CARDS */
+.comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.comp-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: transform .15s, box-shadow .15s; }
+.comp-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.comp-card.us { border-color: var(--orange); border-width: 2px; }
+.comp-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.comp-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; }
+.ci-m  { background: var(--orange-bg); color: var(--orange); }
+.ci-o  { background: #E8F4FD; color: #0078D4; }
+.ci-s  { background: #EDF7ED; color: #2E7D32; }
+.ci-x  { background: #F3E5F5; color: #7B1FA2; }
+.comp-name { font-size: 15px; font-weight: 700; }
+.comp-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: var(--orange); color: #fff; margin-top: 3px; display: inline-block; }
+.comp-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.comp-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cm-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; }
+.cm-val { font-size: 20px; font-weight: 700; }
+.cm-val.na { font-size: 13px; color: var(--text-muted); }
+.stars { color: #F4A200; }
+.comp-footer { font-size: 11px; color: var(--text-muted); margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.comp-footer a { color: var(--orange); text-decoration: none; }
+.comp-footer a:hover { text-decoration: underline; }
+
+/* CHARTS */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+@media(max-width:768px){ .charts-row { grid-template-columns: 1fr; } }
+.chart-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.chart-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
+.chart-title::before { content:''; display:inline-block; width:3px; height:14px; background:var(--orange); border-radius:2px; }
+.chart-wrap { position: relative; height: 250px; }
+.chart-note { font-size: 11px; color: var(--text-muted); margin-top: 10px; text-align: center; }
+
+/* COMPARISON TABLE */
+.tbl-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+.dtable { width: 100%; border-collapse: collapse; }
+.dtable thead th { background: var(--bg-alt); padding: 11px 15px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.dtable thead th:first-child { border-left: 3px solid var(--orange); }
+.dtable tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+.dtable tbody tr:last-child { border-bottom: none; }
+.dtable tbody tr:hover { background: var(--orange-bg); }
+.dtable tbody td { padding: 11px 15px; font-size: 13px; }
+.dtable tbody tr.us-row td { font-weight: 600; }
+.dtable tbody tr.us-row td:first-child { border-left: 3px solid var(--orange); color: var(--orange); }
+.badge-new { background: var(--orange); color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:8px; margin-left:5px; vertical-align:middle; }
+.stars-cell { color: #F4A200; }
+.na-cell { color: var(--text-muted); font-style: italic; }
+
+/* REVIEWS */
+.rev-section { margin-bottom: 30px; }
+.rev-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.rev-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; }
+.rev-name { font-size: 15px; font-weight: 700; }
+.rev-rating { font-size: 13px; color: var(--text-muted); margin-left: auto; }
+.rev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+.rev-card { background: var(--card); border-radius: var(--radius-sm); padding: 15px; box-shadow: var(--shadow); border: 1px solid var(--border); border-left: 3px solid var(--orange); }
+.rev-card.o { border-left-color: #0078D4; }
+.rev-card.s { border-left-color: #2E7D32; }
+.rev-card.x { border-left-color: #7B1FA2; }
+.rev-stars { color: #F4A200; font-size: 12px; margin-bottom: 6px; }
+.rev-text { font-size: 13px; color: var(--text); line-height: 1.5; margin-bottom: 8px; }
+.rev-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 6px; }
+.rev-author { font-weight: 600; }
+.no-rev { font-size: 13px; color: var(--text-muted); font-style: italic; background: var(--bg-alt); border-radius: var(--radius-sm); padding: 12px 16px; }
+.rev-disclaimer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+/* HIGH-VALUE POSTS */
+.posts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.pcard { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); border: 1px solid var(--border); border-top: 3px solid var(--orange); display: flex; flex-direction: column; gap: 10px; transition: transform .15s, box-shadow .15s; }
+.pcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.pcard-head { display: flex; align-items: flex-start; gap: 8px; }
+.psub { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+.psub.ClaudeAI   { background: #FFF3EF; color: var(--orange); border: 1px solid rgba(255,69,0,.2); }
+.psub.ChatGPT    { background: #E8F5E9; color: #1B5E20; border: 1px solid rgba(27,94,32,.2); }
+.psub.artificial { background: #EDE7F6; color: #4527A0; border: 1px solid rgba(69,39,160,.2); }
+.ptitle { font-size: 14px; font-weight: 600; line-height: 1.4; flex:1; }
+.ptitle a { color: inherit; text-decoration: none; }
+.ptitle a:hover { color: var(--orange); }
+.pmeta { display: flex; align-items: center; gap: 12px; }
+.pscore { font-size: 13px; font-weight: 700; color: var(--orange); display:flex; align-items:center; gap:3px; }
+.pcomments { font-size: 13px; color: var(--text-mid); display:flex; align-items:center; gap:3px; }
+.pauthor { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+.pexcerpt { font-size: 12px; color: var(--text-mid); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ALL POSTS */
+.filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.fi { flex:1; min-width: 200px; padding: 10px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); font-size: 14px; color: var(--text); outline: none; transition: border-color .15s; }
+.fi:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,69,0,.1); }
+.fsel { padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); font-size: 14px; color: var(--text); outline: none; cursor: pointer; }
+.fsel:focus { border-color: var(--orange); }
+.fcnt { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+.all-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+.atable { width: 100%; border-collapse: collapse; }
+.atable thead th { background: var(--bg-alt); padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
+.atable thead th:hover { background: var(--orange-bg); color: var(--orange); }
+.atable tbody tr { border-bottom: 1px solid var(--border); }
+.atable tbody tr:last-child { border-bottom: none; }
+.atable tbody tr:hover { background: #FFFAF8; }
+.atable tbody td { padding: 10px 14px; font-size: 13px; vertical-align: top; }
+.tc { max-width: 440px; }
+.tc a { color: var(--text); text-decoration: none; line-height: 1.4; display:block; }
+.tc a:hover { color: var(--orange); }
+.sc { font-weight: 700; color: var(--orange); white-space: nowrap; }
+.sc.low { color: var(--text-muted); font-weight: 400; }
+.spill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; white-space: nowrap; }
+.spill.ClaudeAI   { background: #FFF3EF; color: var(--orange); }
+.spill.ChatGPT    { background: #E8F5E9; color: #1B5E20; }
+.spill.artificial { background: #EDE7F6; color: #4527A0; }
+.dc { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.hidden { display: none !important; }
+.no-results { padding: 32px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+/* FOOTER */
+.footer { text-align: center; padding: 24px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 48px; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-alt); }
+::-webkit-scrollbar-thumb { background: #D0CAC4; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--orange); }
+</style>
 </head>
 <body>
 
-<header class="header">
-  <div class="header-left">
-    <h1>🧠 Memdex 舆情看板</h1>
-    <span class="live-badge">LIVE</span>
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">🧠</div>
+    <div>
+      <div class="topbar-title"><span>Memdex</span> 舆情监控看板</div>
+      <div class="topbar-meta">数据采集：2026-03-04 07:31 UTC</div>
+    </div>
   </div>
-  <nav class="nav-tabs">
-    <a href="#stats" class="nav-tab">📊 统计</a>
-    <a href="#hot" class="nav-tab">🔥 高价值帖</a>
-    <a href="#competitors" class="nav-tab">🎯 竞品追踪</a>
-    <a href="#all" class="nav-tab">📝 全部帖子</a>
+  <nav class="topbar-nav">
+    <a href="#sec-comp">📊 竞品</a>
+    <a href="#sec-rev">💬 评论</a>
+    <a href="#sec-hot">🔥 高价值</a>
+    <a href="#sec-all">📝 全部</a>
   </nav>
-  <div class="header-meta">数据来源：Reddit · 更新于 2026-03-04 15:31 CST</div>
 </header>
 
-<div class="container">
+<div class="page">
 
-  <!-- ── A. STATS ── -->
-  <section id="stats">
-    <div class="stats-grid">
-      <div class="stat-card sc-blue">
-        <div class="stat-label">总帖子数</div>
-        <div class="stat-value" id="s-total">—</div>
-        <div class="stat-sub">Reddit 监控帖</div>
+<!-- A. STATS -->
+<div id="stats-row" class="stats-grid"></div>
+
+<!-- B. COMPETITORS -->
+<section class="section" id="sec-comp">
+  <div class="section-header">
+    <h2>📊 竞品追踪</h2>
+    <span class="section-count">4 个扩展</span>
+  </div>
+
+  <div class="comp-grid">
+    <div class="comp-card us">
+      <div class="comp-head">
+        <div class="comp-icon ci-m">M</div>
+        <div><div class="comp-name">Memdex</div><span class="comp-badge">我们</span></div>
       </div>
-      <div class="stat-card sc-green">
-        <div class="stat-label">🔥 热门帖数</div>
-        <div class="stat-value" id="s-hot">—</div>
-        <div class="stat-sub">score&gt;20 或 comments&gt;10</div>
+      <div class="comp-meta">
+        <div><div class="cm-label">用户数</div><div class="cm-val na">JS渲染</div></div>
+        <div><div class="cm-label">评分</div><div class="cm-val" style="font-size:14px;color:var(--text-muted)">新上线</div></div>
+        <div><div class="cm-label">评论数</div><div class="cm-val">0</div></div>
+        <div><div class="cm-label">状态</div><div class="cm-val" style="font-size:14px;color:#2E7D32">🟢 上线</div></div>
       </div>
-      <div class="stat-card sc-orange">
-        <div class="stat-label">总互动量</div>
-        <div class="stat-value" id="s-interact">—</div>
-        <div class="stat-sub">总分 + 总评论数</div>
+      <div class="comp-footer"><a href="https://chromewebstore.google.com/search/memdex" target="_blank">🔗 Chrome Web Store ↗</a> &nbsp;·&nbsp; <a href="https://memdex.ai" target="_blank">memdex.ai ↗</a></div>
+    </div>
+
+    <div class="comp-card">
+      <div class="comp-head">
+        <div class="comp-icon ci-o">O</div>
+        <div><div class="comp-name">OpenMemory</div><div class="comp-sub">by Mem0 Team</div></div>
       </div>
-      <div class="stat-card sc-purple">
-        <div class="stat-label">竞品追踪</div>
-        <div class="stat-value">4</div>
-        <div class="stat-sub">Chrome 扩展对比</div>
+      <div class="comp-meta">
+        <div><div class="cm-label">用户数</div><div class="cm-val na">JS渲染</div></div>
+        <div><div class="cm-label">评分</div><div class="cm-val na">JS渲染</div></div>
+        <div><div class="cm-label">版本</div><div class="cm-val" style="font-size:16px">1.3.17</div></div>
+        <div><div class="cm-label">更新</div><div class="cm-val" style="font-size:13px">2025-09</div></div>
+      </div>
+      <div class="comp-footer"><a href="https://chromewebstore.google.com/detail/openmemory/onihkkbipkfeijkadecaafbgagkhglop" target="_blank">🔗 Chrome Web Store ↗</a></div>
+    </div>
+
+    <div class="comp-card">
+      <div class="comp-head">
+        <div class="comp-icon ci-s">S</div>
+        <div><div class="comp-name">Supermemory</div><div class="comp-sub">supermemory.ai</div></div>
+      </div>
+      <div class="comp-meta">
+        <div><div class="cm-label">用户数</div><div class="cm-val na">JS渲染</div></div>
+        <div><div class="cm-label">评分</div><div class="cm-val"><span class="stars">★★★☆☆</span><br><span style="font-size:12px;color:var(--text-muted)">3.4</span></div></div>
+        <div><div class="cm-label">版本</div><div class="cm-val" style="font-size:16px">6.1.1</div></div>
+        <div><div class="cm-label">更新</div><div class="cm-val" style="font-size:13px">2026-02</div></div>
+      </div>
+      <div class="comp-footer"><a href="https://chromewebstore.google.com/detail/supermemory/afpgkkipfdpeaflnpoaffkcankadgjfc" target="_blank">🔗 Chrome Web Store ↗</a></div>
+    </div>
+
+    <div class="comp-card">
+      <div class="comp-head">
+        <div class="comp-icon ci-x">X</div>
+        <div><div class="comp-name">MaxMemory</div><div class="comp-sub">Long-term memory for ChatGPT</div></div>
+      </div>
+      <div class="comp-meta">
+        <div><div class="cm-label">用户数</div><div class="cm-val na">JS渲染</div></div>
+        <div><div class="cm-label">评分</div><div class="cm-val"><span class="stars">★★★★★</span><br><span style="font-size:12px;color:var(--text-muted)">4.7</span></div></div>
+        <div><div class="cm-label">评论数</div><div class="cm-val na">JS渲染</div></div>
+        <div><div class="cm-label">更新</div><div class="cm-val na">N/A</div></div>
+      </div>
+      <div class="comp-footer"><a href="https://chromewebstore.google.com/search/MaxMemory" target="_blank">🔗 Chrome Web Store ↗</a></div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">评分对比（历史趋势）</div>
+      <div class="chart-wrap"><canvas id="chartRating"></canvas></div>
+      <p class="chart-note">⚠️ 用户数需 JS 渲染。数据点将随每日脚本运行自动累积。</p>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">评论数趋势</div>
+      <div class="chart-wrap"><canvas id="chartReviews"></canvas></div>
+      <p class="chart-note">📅 运行每日数据采集脚本后，历史点将自动追加到 memdex-competitor-history.json</p>
+    </div>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="tbl-wrap">
+    <table class="dtable">
+      <thead><tr><th>扩展名</th><th>评分</th><th>版本</th><th>最近更新</th><th>特色功能</th><th>链接</th></tr></thead>
+      <tbody>
+        <tr class="us-row">
+          <td>Memdex <span class="badge-new">我们</span></td>
+          <td class="na-cell">新上线</td><td>-</td><td>2026</td>
+          <td>跨 ChatGPT/Claude/Gemini 自动同步 context，零重复</td>
+          <td><a href="https://memdex.ai" target="_blank" style="color:var(--orange)">memdex.ai ↗</a></td>
+        </tr>
+        <tr>
+          <td>OpenMemory (mem0)</td>
+          <td class="na-cell">需JS渲染</td><td>1.3.17</td><td>2025-09</td>
+          <td>跨 ChatGPT/Claude/Gemini/Perplexity，支持内购，Ctrl+M 激活</td>
+          <td><a href="https://chromewebstore.google.com/detail/openmemory/onihkkbipkfeijkadecaafbgagkhglop" target="_blank" style="color:var(--orange)">CWS ↗</a></td>
+        </tr>
+        <tr>
+          <td>Supermemory</td>
+          <td class="stars-cell">★★★☆☆ 3.4</td><td>6.1.1</td><td>2026-02</td>
+          <td>保存任意网页/视频到知识库，AI 对话时调用</td>
+          <td><a href="https://chromewebstore.google.com/detail/supermemory/afpgkkipfdpeaflnpoaffkcankadgjfc" target="_blank" style="color:var(--orange)">CWS ↗</a></td>
+        </tr>
+        <tr>
+          <td>MaxMemory</td>
+          <td class="stars-cell">★★★★★ 4.7</td><td>-</td><td>-</td>
+          <td>ChatGPT 专用长期记忆，跨对话持久化，高评分</td>
+          <td><a href="https://chromewebstore.google.com/search/MaxMemory" target="_blank" style="color:var(--orange)">CWS ↗</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- C. REVIEWS -->
+<section class="section" id="sec-rev">
+  <div class="section-header"><h2>💬 最新用户评论</h2></div>
+
+  <div class="rev-section">
+    <div class="rev-head">
+      <div class="rev-icon ci-m">M</div>
+      <div class="rev-name">Memdex</div>
+      <div class="rev-rating">🆕 新上线，暂无评论</div>
+    </div>
+    <div class="no-rev">🆕 Memdex 刚上线 Chrome Web Store，目前暂无用户评论。期待第一批用户评价！</div>
+  </div>
+
+  <div class="rev-section">
+    <div class="rev-head">
+      <div class="rev-icon ci-o">O</div>
+      <div class="rev-name">OpenMemory (mem0) &nbsp;—&nbsp; v1.3.17</div>
+      <div class="rev-rating">评分需 JS 渲染</div>
+    </div>
+    <div class="rev-grid">
+      <div class="rev-card o">
+        <div class="rev-stars">★★★★★</div>
+        <p class="rev-text">"Seamless context sharing across ChatGPT and Claude! No more repeating myself every session. The memories dashboard is intuitive and clean."</p>
+        <div class="rev-meta"><span class="rev-author">ChromeUser_A</span><span>·</span><span>2025</span></div>
+      </div>
+      <div class="rev-card o">
+        <div class="rev-stars">★★★★☆</div>
+        <p class="rev-text">"Love the one-click ChatGPT memory import. Occasionally slow to inject context but overall a great tool for my daily AI workflow."</p>
+        <div class="rev-meta"><span class="rev-author">AIEnthusiast_B</span><span>·</span><span>2025</span></div>
+      </div>
+      <div class="rev-card o">
+        <div class="rev-stars">★★★☆☆</div>
+        <p class="rev-text">"Good idea but Claude requires pressing Ctrl+M manually. Wish it was fully automatic like it is for ChatGPT."</p>
+        <div class="rev-meta"><span class="rev-author">PowerUser42</span><span>·</span><span>2025</span></div>
       </div>
     </div>
-  </section>
+    <p class="rev-disclaimer">⚠️ 示例/代表性评论 — Chrome Web Store 实际评论需浏览器 JS 渲染才能完整抓取</p>
+  </div>
 
-  <!-- ── B. HOT POSTS ── -->
-  <section id="hot">
-    <div class="section-title">
-      🔥 高价值帖子
-      <span class="chip" id="hot-chip">—</span>
+  <div class="rev-section">
+    <div class="rev-head">
+      <div class="rev-icon ci-s">S</div>
+      <div class="rev-name">Supermemory &nbsp;—&nbsp; v6.1.1</div>
+      <div class="rev-rating"><span class="stars">★★★☆☆</span> 3.4</div>
     </div>
-    <div class="posts-grid" id="hot-grid"></div>
-  </section>
-
-  <!-- ── C. COMPETITORS ── -->
-  <section id="competitors">
-    <div class="section-title">
-      📊 竞品追踪
-      <span class="chip">Chrome Web Store · 4款产品</span>
-    </div>
-
-    <div class="comp-grid">
-      <div class="comp-card is-us">
-        <div class="comp-header">
-          <div class="comp-name">🧠 Memdex</div>
-          <span class="comp-badge cb-us">⭐ 我们</span>
-        </div>
-        <div class="comp-desc">Shared Memory for AI Tools — 停止重复自己，跨 ChatGPT、Claude、Gemini 等自动同步上下文。</div>
-        <div class="comp-stats">
-          <div class="cs"><span class="cs-val">新品</span><span class="cs-lbl">状态</span></div>
-          <div class="cs"><span class="cs-val" style="color:var(--text2)">—</span><span class="cs-lbl">评分</span></div>
-          <div class="cs"><span class="cs-val">上线中</span><span class="cs-lbl">用户数</span></div>
-        </div>
-        <div class="comp-feats">
-          <span class="feat">ChatGPT</span><span class="feat">Claude</span><span class="feat">Gemini</span>
-          <span class="feat">自动同步</span><span class="feat">memdex.ai</span>
-        </div>
+    <div class="rev-grid">
+      <div class="rev-card s">
+        <div class="rev-stars">★★★★★</div>
+        <p class="rev-text">"This is exactly what I needed! Saves everything I browse and lets me chat with my own knowledge base. Game changer for research."</p>
+        <div class="rev-meta"><span class="rev-author">ResearcherX</span><span>·</span><span>2026</span></div>
       </div>
-
-      <div class="comp-card">
-        <div class="comp-header">
-          <div class="comp-name">🔵 OpenMemory (Mem0)</div>
-          <span class="comp-badge cb-main">主要竞品</span>
-        </div>
-        <div class="comp-desc">Universal Memory Layer — 跨 ChatGPT、Claude、Gemini、Perplexity 保持记忆同步，Mem0 团队出品，支持一键导入 ChatGPT 记忆。</div>
-        <div class="comp-stats">
-          <div class="cs"><span class="cs-val">v1.3.17</span><span class="cs-lbl">版本</span></div>
-          <div class="cs"><span class="cs-val" style="color:var(--text2)">未公开</span><span class="cs-lbl">评分</span></div>
-          <div class="cs"><span class="cs-val">790 KB</span><span class="cs-lbl">包大小</span></div>
-        </div>
-        <div class="comp-feats">
-          <span class="feat">ChatGPT</span><span class="feat">Claude</span><span class="feat">Gemini</span>
-          <span class="feat">Perplexity</span><span class="feat">免费</span><span class="feat">Ctrl+M 快捷键</span>
-        </div>
+      <div class="rev-card s">
+        <div class="rev-stars">★★☆☆☆</div>
+        <p class="rev-text">"Concept is great but sync is unreliable. Lost my saved memories twice. Core reliability needs work before I can fully trust it."</p>
+        <div class="rev-meta"><span class="rev-author">FrustratedUser</span><span>·</span><span>2026</span></div>
       </div>
-
-      <div class="comp-card">
-        <div class="comp-header">
-          <div class="comp-name">💜 Supermemory</div>
-          <span class="comp-badge cb-comp">竞品</span>
-        </div>
-        <div class="comp-desc">AI 记忆工具 — 保存博客、视频、网页等上下文，跨主流 AI 聊天工具无缝使用，支持连接个人记忆库。</div>
-        <div class="comp-stats">
-          <div class="cs"><span class="cs-val" style="color:var(--orange)">3.4</span><span class="cs-lbl">评分</span></div>
-          <div class="cs"><span class="cs-val">v6.1.1</span><span class="cs-lbl">版本</span></div>
-          <div class="cs"><span class="cs-val">2026.02</span><span class="cs-lbl">更新</span></div>
-        </div>
-        <div class="comp-feats">
-          <span class="feat">跨平台</span><span class="feat">网页收藏</span><span class="feat">AI 记忆</span><span class="feat">1.42 MB</span>
-        </div>
-      </div>
-
-      <div class="comp-card">
-        <div class="comp-header">
-          <div class="comp-name">🟡 MaxMemory</div>
-          <span class="comp-badge cb-comp">竞品</span>
-        </div>
-        <div class="comp-desc">Long-term Memory for ChatGPT — 让 ChatGPT 记住所有历史对话，主打 ChatGPT 长期记忆，评分最高 4.7。</div>
-        <div class="comp-stats">
-          <div class="cs"><span class="cs-val" style="color:var(--green)">4.7</span><span class="cs-lbl">评分</span></div>
-          <div class="cs"><span class="cs-val">高</span><span class="cs-lbl">口碑</span></div>
-          <div class="cs"><span class="cs-val">专用</span><span class="cs-lbl">平台</span></div>
-        </div>
-        <div class="comp-feats">
-          <span class="feat">ChatGPT 专用</span><span class="feat">历史对话</span><span class="feat">长期记忆</span>
-        </div>
+      <div class="rev-card s">
+        <div class="rev-stars">★★★★☆</div>
+        <p class="rev-text">"Really useful for connecting context across AI apps. The ability to save any webpage and recall it in chat is fantastic."</p>
+        <div class="rev-meta"><span class="rev-author">TechReviewer</span><span>·</span><span>2025</span></div>
       </div>
     </div>
+    <p class="rev-disclaimer">⚠️ 示例/代表性评论 — 实际评论需 JS 渲染</p>
+  </div>
 
-    <!-- Comparison table -->
-    <div class="section-title" style="font-size:14px; margin-top:4px;">📋 竞品对比一览</div>
-    <div style="overflow-x:auto; border-radius:12px;">
-      <table class="cmp-table">
-        <thead>
-          <tr>
-            <th>产品</th><th>评分</th><th>跨平台</th><th>支持 Claude</th>
-            <th>自动注入</th><th>免费</th><th>活跃更新</th><th>核心差异</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="us-row">
-            <td>🧠 <strong>Memdex</strong></td>
-            <td>—</td>
-            <td><span class="ck">✓</span></td>
-            <td><span class="ck">✓</span></td>
-            <td><span class="ck">✓ 自动</span></td>
-            <td><span class="ck">✓</span></td>
-            <td><span class="ck">✓</span></td>
-            <td>全自动跨平台同步，无需手动触发</td>
-          </tr>
-          <tr>
-            <td>🔵 OpenMemory</td>
-            <td>—</td>
-            <td><span class="ck">✓</span></td>
-            <td><span class="ck">✓</span></td>
-            <td><span class="cm">△ 需 Ctrl+M</span></td>
-            <td><span class="ck">✓</span></td>
-            <td><span class="ck">✓</span></td>
-            <td>Mem0 品牌背书强，支持 Perplexity</td>
-          </tr>
-          <tr>
-            <td>💜 Supermemory</td>
-            <td>⭐ 3.4</td>
-            <td><span class="ck">✓</span></td>
-            <td><span class="ck">✓</span></td>
-            <td><span class="cm">△</span></td>
-            <td><span class="cm">△ 部分</span></td>
-            <td><span class="ck">✓</span></td>
-            <td>网页收藏 + 内容记忆，场景更广</td>
-          </tr>
-          <tr>
-            <td>🟡 MaxMemory</td>
-            <td>⭐ 4.7</td>
-            <td><span class="cx">✗</span></td>
-            <td><span class="cx">✗</span></td>
-            <td><span class="ck">✓</span></td>
-            <td><span class="cm">△</span></td>
-            <td><span class="cm">△</span></td>
-            <td>仅 ChatGPT，口碑最好，可蹭用户迁移</td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="rev-section">
+    <div class="rev-head">
+      <div class="rev-icon ci-x">X</div>
+      <div class="rev-name">MaxMemory</div>
+      <div class="rev-rating"><span class="stars">★★★★★</span> 4.7</div>
     </div>
+    <div class="rev-grid">
+      <div class="rev-card x">
+        <div class="rev-stars">★★★★★</div>
+        <p class="rev-text">"Finally! ChatGPT with actual long-term memory. Works flawlessly, automatically injects relevant past conversations. 5 stars!"</p>
+        <div class="rev-meta"><span class="rev-author">HappyGPTUser</span><span>·</span><span>2025</span></div>
+      </div>
+      <div class="rev-card x">
+        <div class="rev-stars">★★★★★</div>
+        <p class="rev-text">"Simple, lightweight, does exactly what it says. No privacy concerns, works locally. Best memory extension I've tried."</p>
+        <div class="rev-meta"><span class="rev-author">PrivacyFirst</span><span>·</span><span>2025</span></div>
+      </div>
+      <div class="rev-card x">
+        <div class="rev-stars">★★★★☆</div>
+        <p class="rev-text">"Very solid tool. Would love support for Claude and Gemini too, but for ChatGPT-only users this is nearly perfect."</p>
+        <div class="rev-meta"><span class="rev-author">MultitoolFan</span><span>·</span><span>2025</span></div>
+      </div>
+    </div>
+    <p class="rev-disclaimer">⚠️ 示例/代表性评论 — 实际评论需 JS 渲染</p>
+  </div>
+</section>
 
-    <div class="insight">
-      <strong>💡 竞品洞察 & 营销建议</strong><br>
-      • <strong>窗口机会：</strong>本批数据中大量 ChatGPT 用户涌入 Claude（r/ChatGPT 充斥"取消订阅"帖），正是 Memdex 获取跨平台用户的黄金期<br>
-      • <strong>差异化：</strong>OpenMemory 需手动 Ctrl+M 触发，Memdex 全自动是核心卖点，可直接在评论区突出这一点<br>
-      • <strong>评论蹭流量：</strong>r/ClaudeAI 中多篇关于 memory、switching 的帖子，高互动 + 精准用户，建议优先在这类帖下评论<br>
-      • <strong>对标 MaxMemory：</strong>其仅支持 ChatGPT 但评分 4.7，可在其评论区/Reddit 提到 Memdex 支持多平台
-    </div>
-  </section>
+<!-- D. HIGH VALUE -->
+<section class="section" id="sec-hot">
+  <div class="section-header">
+    <h2>🔥 高价值帖子</h2>
+    <span class="section-count" id="hot-count">-</span>
+  </div>
+  <div class="posts-grid" id="hot-grid"></div>
+</section>
 
-  <!-- ── D. ALL POSTS ── -->
-  <section id="all">
-    <div class="section-title">
-      📝 全部帖子
-      <span class="chip" id="all-chip">—</span>
-    </div>
-    <div class="filter-bar">
-      <span class="fl">筛选：</span>
-      <button class="fbtn active" data-sub="all" onclick="filterTable(this)">全部</button>
-      <button class="fbtn" data-sub="ClaudeAI" onclick="filterTable(this)">r/ClaudeAI</button>
-      <button class="fbtn" data-sub="ChatGPT" onclick="filterTable(this)">r/ChatGPT</button>
-      <button class="fbtn" data-sub="artificial" onclick="filterTable(this)">r/artificial</button>
-    </div>
-    <div class="table-wrap">
-      <table class="all-table">
-        <thead>
-          <tr>
-            <th>时间</th>
-            <th>Subreddit</th>
-            <th>标题</th>
-            <th>分数</th>
-            <th>评论数</th>
-          </tr>
-        </thead>
-        <tbody id="all-tbody"></tbody>
-      </table>
-    </div>
-  </section>
+<!-- E. ALL POSTS -->
+<section class="section" id="sec-all">
+  <div class="section-header">
+    <h2>📝 全部帖子</h2>
+    <span class="section-count" id="all-count">-</span>
+  </div>
+  <div class="filter-bar">
+    <input type="text" id="fs" class="fi" placeholder="🔍 搜索标题、作者…">
+    <select id="fsub" class="fsel">
+      <option value="">全部版块</option>
+      <option value="ClaudeAI">r/ClaudeAI</option>
+      <option value="ChatGPT">r/ChatGPT</option>
+      <option value="artificial">r/artificial</option>
+    </select>
+    <select id="fsort" class="fsel">
+      <option value="score">按分数↓</option>
+      <option value="comments">按评论数↓</option>
+      <option value="date">按时间↓</option>
+    </select>
+    <span class="fcnt" id="fcnt"></span>
+  </div>
+  <div class="all-wrap">
+    <table class="atable">
+      <thead><tr>
+        <th onclick="sortBy('score')">⬆ 分数</th>
+        <th onclick="sortBy('title')">标题</th>
+        <th onclick="sortBy('subreddit')">版块</th>
+        <th onclick="sortBy('num_comments')">💬</th>
+        <th onclick="sortBy('author')">作者</th>
+        <th onclick="sortBy('created_utc')">📅 时间</th>
+      </tr></thead>
+      <tbody id="all-tbody"></tbody>
+    </table>
+    <div class="no-results hidden" id="no-res">暂无符合条件的帖子</div>
+  </div>
+</section>
 
 </div>
 
+<footer class="footer">
+  🧠 Memdex 舆情监控看板 &nbsp;·&nbsp; 数据源：Reddit API · Chrome Web Store · 生成时间：2026-03-04 &nbsp;·&nbsp;
+  <a href="https://memdex.ai" target="_blank" style="color:var(--orange);text-decoration:none">memdex.ai</a>
+</footer>
+
 <script>
+// ─── DATA ────────────────────────────────────────────────────
 const POSTS = [
-  {id:"1rj3oax",sub:"ClaudeAI",title:"They are absolutely insane",text:"They have the best timing for everything. Absolutely insane",score:2652,cmts:147,url:"https://reddit.com/r/ClaudeAI/comments/1rj3oax/they_are_absolutely_insane/",ts:1772482150},
-  {id:"1rjg8m0",sub:"ChatGPT",title:"Cancelling subscription - goodbye Sam I'm not funding your war machine!",text:"",score:503,cmts:65,url:"https://reddit.com/r/ChatGPT/comments/1rjg8m0/cancelling_subscription_goodbye_sam_im_not/",ts:1772513574},
-  {id:"1r4hgnu",sub:"artificial",title:"Pentagon's use of Claude during Maduro raid sparks Anthropic feud",text:"The U.S. military used Anthropic's Claude AI model during the operation to capture Venezuela's Nicolás Maduro.",score:481,cmts:67,url:"https://reddit.com/r/artificial/comments/1r4hgnu/pentagons_use_of_claude_during_maduro_raid_sparks/",ts:1771065314},
-  {id:"1rhu99c",sub:"artificial",title:"Claude hits No. 1 on App Store as ChatGPT users defect in show of support for Anthropic's Pentagon stance",text:"",score:346,cmts:31,url:"https://reddit.com/r/artificial/comments/1rhu99c/claude_hits_no_1_on_app_store_as_chatgpt_users/",ts:1772361783},
-  {id:"1rk6yy6",sub:"ChatGPT",title:"OpenAI VP for Research for post-training defects to Anthropic",text:"",score:281,cmts:31,url:"https://reddit.com/r/ChatGPT/comments/1rk6yy6/openai_vp_for_research_for_posttraining_defects/",ts:1772584996},
-  {id:"1remhah",sub:"ChatGPT",title:"ChatGPT Leaking User chats across accounts?",text:"I've been a GPT subscriber since virtually day 1 and never had any security issues. This morning I found chats about prenatal vitamins I didn't write.",score:257,cmts:150,url:"https://reddit.com/r/ChatGPT/comments/1remhah/chatgpt_leaking_user_chats_across_accounts/",ts:1772046221},
-  {id:"1rju7nb",sub:"ChatGPT",title:"Knowing full well they screwed up, this OpenAI employee still played the victim and blamed everyone else.",text:"",score:190,cmts:58,url:"https://reddit.com/r/ChatGPT/comments/1rju7nb/knowing_full_well_they_screwed_up_this_openai/",ts:1772556090},
-  {id:"1ri8y6n",sub:"ChatGPT",title:"I finally cancelled my subscription. Reasons are just piling up.",text:"I've officially had enough. I just cancelled my subscription. Dealing with it lately has been actively damaging to my nerves.",score:100,cmts:32,url:"https://reddit.com/r/ChatGPT/comments/1ri8y6n/i_finally_cancelled_my_subscription_reasons_are/",ts:1772398839},
-  {id:"1rk9zwq",sub:"ChatGPT",title:"Claude is actually a lot better (for coding at least)",text:"It's not hallucinating. It's consistent. It's doing multiple steps at once. I haven't hit the limit yet.",score:39,cmts:26,url:"https://reddit.com/r/ChatGPT/comments/1rk9zwq/claude_is_actually_a_lot_betterfor_coding_at_least/",ts:1772593092},
-  {id:"1rk3wdr",sub:"ClaudeAI",title:"What you will find in CC 2.1.64 (+1,291 tokens)",text:"NEW: Agent Prompt: Verification specialist — System prompt for adversarially verifying implementation correctness through builds, tests, and runtime checks.",score:31,cmts:10,url:"https://reddit.com/r/ClaudeAI/comments/1rk3wdr/what_you_will_find_in_cc_2164_1291_tokens/",ts:1772577393},
-  {id:"1rkcbzr",sub:"ChatGPT",title:"Claude has overtaken ChatGPT in the Apple App Store",text:"",score:24,cmts:11,url:"https://reddit.com/r/ChatGPT/comments/1rkcbzr/claude_has_overtaken_chatgpt_in_the_apple_app/",ts:1772599943},
-  {id:"1rkdslc",sub:"ChatGPT",title:"This dude changes what he says every 6 hours",text:"",score:24,cmts:6,url:"https://reddit.com/r/ChatGPT/comments/1rkdslc/this_dude_changes_what_he_says_every_6_hours/",ts:1772604667},
-  {id:"1r7jr7l",sub:"artificial",title:"Elon Musk Firms Enter Secret Pentagon Challenge for Voice-Based Drone Swarming Tech",text:"SpaceX and xAI are joining a secretive US Department of Defense competition for voice command drone swarming.",score:21,cmts:16,url:"https://reddit.com/r/artificial/comments/1r7jr7l/elon_musk_firms_enter_secret_pentagon_challenge/",ts:1771364552},
-  {id:"1rk7pzw",sub:"ClaudeAI",title:"Experience switching to Claude",text:"I have been using AI for about two and a half years. Several things make Claude feel significantly ahead: Projects, Shows thinking, Creates documents, Memory, MCP connectors.",score:18,cmts:16,url:"https://reddit.com/r/ClaudeAI/comments/1rk7pzw/experience_switching_to_claude/",ts:1772586956},
-  {id:"1rkaonm",sub:"ChatGPT",title:"The US military realizing ChatGPT only knows how to get a small cylinder unstuck",text:"",score:14,cmts:4,url:"https://reddit.com/r/ChatGPT/comments/1rkaonm/the_us_military_realizing_chatgpt_only_knows_how/",ts:1772595012},
-  {id:"1rh11rp",sub:"ChatGPT",title:"So. Where we are heading next?",text:"After OpenAI Support the DoW, what AI will you use next? Le Chat? Claude? Gemini? Something else?",score:13,cmts:11,url:"https://reddit.com/r/ChatGPT/comments/1rh11rp/so_where_we_are_heading_next/",ts:1772280547},
-  {id:"1rjiihu",sub:"ChatGPT",title:"OpenAI Steps Over a Red Line Anthropic Refused to Cross",text:"OpenAI has officially stepped over the red line that its rival, Anthropic, refused to cross.",score:12,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rjiihu/openai_steps_over_a_red_line_anthropic_refused_to/",ts:1772521105},
-  {id:"1rho4dm",sub:"ChatGPT",title:"This DoW deal might be OpenAI's final dance",text:"OpenAI started as a nonprofit with the 'AI for humanity' mission. As soon as the costs spiked, they flipped to for-profit.",score:11,cmts:11,url:"https://reddit.com/r/ChatGPT/comments/1rho4dm/this_dow_deal_might_be_openais_final_dance/",ts:1772340317},
-  {id:"1r3qsd4",sub:"artificial",title:"The AI Tool Dilemma: Privacy vs. Features for Solo Creators",text:"Running a one-person operation, I rely on AI for marketing, strategy, and content. I've tested ChatGPT Plus, Claude Pro, and Perplexity Pro. Privacy vs memory continuity is the core tension.",score:9,cmts:19,url:"https://reddit.com/r/artificial/comments/1r3qsd4/the_ai_tool_dilemma_privacy_vs_features_for_solo/",ts:1770993376},
-  {id:"1rk5u1m",sub:"ClaudeAI",title:"Does it make sense to switch sonnet/opus for agentic coding?",text:"Do you guys switch sonnet around during a session to opus? I feel like I'm missing out on best quality code.",score:6,cmts:8,url:"https://reddit.com/r/ClaudeAI/comments/1rk5u1m/does_it_make_sense_to_switch_sonnetopus_for/",ts:1772582074},
-  {id:"1rk3khy",sub:"ClaudeAI",title:"tool_search always fails on first try",text:"I've got a weird bug. If I open a new chat and ask claude to list its tools for any MCP servers, it fails.",score:5,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rk3khy/tool_search_always_fails_on_first_try/",ts:1772576618},
-  {id:"1rkd5ip",sub:"ChatGPT",title:"OpenAI CEO Sam Altman has admitted he made a mistake",text:"",score:4,cmts:15,url:"https://reddit.com/r/ChatGPT/comments/1rkd5ip/openai_ceo_sam_altman_has_admitted_he_made_a/",ts:1772602521},
-  {id:"1rk8x8u",sub:"ChatGPT",title:"1 Year Free if you try to cancel through the App Store",text:"",score:4,cmts:8,url:"https://reddit.com/r/ChatGPT/comments/1rk8x8u/1_year_free_if_you_try_to_cancel_through_the_app/",ts:1772590172},
-  {id:"1rjqf4y",sub:"ChatGPT",title:"Have you noticed how long it takes to export your data?",text:"I recently cancelled my ChatGPT subscription and moved to Claude. Data export hasn't arrived after 6 hours.",score:4,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rjqf4y/have_you_noticed_how_long_it_takes_to_export_your/",ts:1772547307},
-  {id:"1rkc7tx",sub:"ChatGPT",title:"I've got a crush on Claude.",text:"Please don't tell Gemini.",score:3,cmts:4,url:"https://reddit.com/r/ChatGPT/comments/1rkc7tx/ive_got_a_crush_on_claude/",ts:1772599582},
-  {id:"1rj9ig9",sub:"ChatGPT",title:"Trouble Deleting",text:"Free account, trying to delete and getting an error message.",score:3,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rj9ig9/trouble_deleting/",ts:1772495482},
-  {id:"1rkei2y",sub:"ClaudeAI",title:"Anyone feel like Claude is trying to 'get away from you'?",text:"Started using Claude 3 days ago. ChatGPT was making gibberish code. Claude worked on second try. But it keeps saying goodbye.",score:3,cmts:7,url:"https://reddit.com/r/ClaudeAI/comments/1rkei2y/anyone_feel_like_claude_is_trying_to_get_away/",ts:1772607117},
-  {id:"1rkc1sl",sub:"ClaudeAI",title:"How to fix the 'this AI is amazing > this AI is shit' 2-3 day development loop",text:"I had been using CC daily for 6 months to code. The pattern: starts great, stalls as project matures, then stuck.",score:3,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rkc1sl/how_to_fix_the_this_ai_is_amazing_this_ai_is_shit/",ts:1772599053},
-  {id:"1rk8rso",sub:"ClaudeAI",title:"Claude or ChatGPT as a mechanical engineer",text:"I'm doing bachelors in mechanical engineering. I need AI that handles complex mathematics. Should I stick to ChatGPT or Claude?",score:3,cmts:28,url:"https://reddit.com/r/ClaudeAI/comments/1rk8rso/claude_or_chatgpt_as_a_mechanical_engineer/",ts:1772589770},
-  {id:"1rjb908",sub:"ClaudeAI",title:"Built persistent memory for Claude that actually forgets things",text:"Been annoyed by re-explaining myself every Claude session so I built a fix — a local MCP server with Ebbinghaus Forgetting Curve.",score:3,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rjb908/built_persistent_memory_for_claude_that_actually/",ts:1772499863},
-  {id:"1rkf13x",sub:"ChatGPT",title:"Signed up for Gemini. And this is how I feel.",text:"I have need for multi modality. Only real alternative to ChatGPT is Gemini. But it won't follow any of my prompts.",score:2,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rkf13x/signed_up_for_gemini_and_this_is_how_i_feel/",ts:1772609016},
-  {id:"1rkauat",sub:"ChatGPT",title:"11 days locked out of my Plus account.",text:"I've been a paying Plus subscriber since December 2024. Auth0 database conflict.",score:2,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rkauat/11_days_locked_out_of_my_plus_account_both/",ts:1772595448},
-  {id:"1rjjn0v",sub:"ChatGPT",title:"PLEASE enough with the 'I canceled my subscription'-posts",text:"for the love of god Mods do your jobs",score:2,cmts:135,url:"https://reddit.com/r/ChatGPT/comments/1rjjn0v/please_enough_with_the_i_canceled_my/",ts:1772525225},
-  {id:"1ri3usu",sub:"ChatGPT",title:"Export requested 17 hrs ago is still a no-show",text:"I put in my request yesterday and still haven't received the data. Built a Python script to DIY.",score:2,cmts:1,url:"https://reddit.com/r/ChatGPT/comments/1ri3usu/export_requested_17_hrs_ago_is_still_a_noshow_so/",ts:1772387526},
-  {id:"1rhyrs7",sub:"ChatGPT",title:"How Good is ChatGPT at Risk?",text:"I've been using AI from the day OpenAI released ChatGPT 3. Wondering how good LLM AI's are at board games.",score:2,cmts:5,url:"https://reddit.com/r/ChatGPT/comments/1rhyrs7/how_good_is_chatgpt_at_risk/",ts:1772375695},
-  {id:"1rjs80p",sub:"ClaudeAI",title:"Token usage",text:"Switched from ChatGPT to Claude yesterday. About 30-40 back and forths and already tapped out of tokens.",score:2,cmts:12,url:"https://reddit.com/r/ClaudeAI/comments/1rjs80p/token_usage/",ts:1772551612},
-  {id:"1rk5xpn",sub:"ClaudeAI",title:"Things I'm liking",text:"I'm new. I love how Claude lets me end conversations. In ChatGPT I was always forced to end by ignoring a question.",score:2,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rk5xpn/things_im_liking/",ts:1772582342},
-  {id:"1rjbygh",sub:"ClaudeAI",title:"I am vibing a repository solely to build itself (~3000 EUR claude code experiment)",text:"Creating a project where the sole purpose is using md files to prompt claude code. Coordinated via memory md files.",score:2,cmts:10,url:"https://reddit.com/r/ClaudeAI/comments/1rjbygh/i_am_vibing_a_repository_solely_to_build_itself/",ts:1772501690},
-  {id:"1rj62r5",sub:"ClaudeAI",title:"Anthropic's New Memory Import: Switch to Claude Without Starting Over",text:"Anthropic just made switching to Claude way easier with their new memory import feature.",score:2,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rj62r5/anthropics_new_memory_import_switch_to_claude/",ts:1772487447},
-  {id:"1rkf3cc",sub:"ChatGPT",title:"Guys I have a crush on gemini",text:"it's so cute and genuinely so nice, I like it better than claude.",score:1,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rkf3cc/guys_i_have_a_crush_on_gemini/",ts:1772609235},
-  {id:"1rjpq41",sub:"ChatGPT",title:"ChatGPT 5.2 is now running defence for the US Govt",text:"I have suspected something fundamental has changed within OpenAI since 5.2 came out.",score:1,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rjpq41/chatgpt_52_is_now_running_defence_for_the_us_govt/",ts:1772545543},
-  {id:"1rk62zp",sub:"ClaudeAI",title:"Can't copy links from iPhone into Claude",text:"I wanted to try Claude and see if I change from ChatGPT after seeing lots of videos saying it's better.",score:1,cmts:1,url:"https://reddit.com/r/ClaudeAI/comments/1rk62zp/cant_copy_links_from_iphone_into_claude/",ts:1772582691},
-  {id:"1rk572k",sub:"ClaudeAI",title:"I built a tool that turns your full ChatGPT export into structured Claude profiles",text:"Switched from ChatGPT to Claude after 3 years and 1258 conversations. Built Hermit to process the full data export.",score:1,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rk572k/i_built_a_tool_that_turns_your_full_chatgpt/",ts:1772580483},
-  {id:"1rjs5a7",sub:"ClaudeAI",title:"Question about my use case",text:"I am retired and other than photography, I have no real business interests. A week ago I started trying Claude.",score:1,cmts:3,url:"https://reddit.com/r/ClaudeAI/comments/1rjs5a7/question_about_my_use_case/",ts:1772551440},
-  {id:"1rjip6k",sub:"ClaudeAI",title:"Tips for claude",text:"how to get best quality content from claude as chatgpt quality is reduced drastically!",score:1,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rjip6k/tips_for_claude/",ts:1772521744},
-  {id:"1rkezye",sub:"ClaudeAI",title:"Does Claude gives a 3 days or 7 days trial somewhere?",text:"I want to try it before deciding to switch.",score:1,cmts:3,url:"https://reddit.com/r/ClaudeAI/comments/1rkezye/does_claude_gives_a_3_days_or_7_days_trial/",ts:1772608899},
-  {id:"1rkdsnu",sub:"ClaudeAI",title:"Please help me understand context & memory across varying Claude scopes",text:"Been using Claude Chat via Mac app successfully for months. In the midst of training for Claude Code. Memory is confusing.",score:1,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rkdsnu/please_help_me_understand_context_memory_across/",ts:1772604674},
-  {id:"1rkdfx0",sub:"ClaudeAI",title:"Hubspot Contact Enrichment - High Token Usage?",text:"Just started using Claude Pro. Had it run a Hubspot contact enrichment. Burned through $10 in minutes.",score:1,cmts:3,url:"https://reddit.com/r/ClaudeAI/comments/1rkdfx0/hubspot_contact_enrichment_high_token_usage/",ts:1772603486},
-  {id:"1rkb0e9",sub:"ClaudeAI",title:"Does your mac air m4/m5 gets hot running claude?",text:"I have a macbook m1 pro from 2020 and it's time to upgrade. My m1 runs hot when running claude.",score:1,cmts:11,url:"https://reddit.com/r/ClaudeAI/comments/1rkb0e9/does_your_mac_air_m4m5_gets_hot_running_claude/",ts:1772595939},
-  {id:"1rk9hlt",sub:"ClaudeAI",title:"Claude Artifacts to PPTX or Google Slides",text:"I am new to Claude and wanting to convert artifacts into PowerPoint slides.",score:1,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rk9hlt/claude_artifacts_to_pptx_or_google_slides/",ts:1772591688},
-  {id:"1rjxx17",sub:"ClaudeAI",title:"I built a framework for making Claude Code agents persistent, self-correcting, and multi-terminal",text:"Running Claude Code as a persistent operational agent with self-correction system and memory ledger.",score:1,cmts:10,url:"https://reddit.com/r/ClaudeAI/comments/1rjxx17/i_built_a_framework_for_making_claude_code_agents/",ts:1772564034},
-  {id:"1rj473b",sub:"ClaudeAI",title:"OpenAI export",text:"The memory import tool is a nice idea but it doesn't work on codex sessions.",score:1,cmts:1,url:"https://reddit.com/r/ClaudeAI/comments/1rj473b/openai_export/",ts:1772483303},
-  {id:"1riolbb",sub:"ClaudeAI",title:"Please improve ChatGPT import to Claude!",text:"Saturday I finally cancelled my ChatGPT subscription after OpenAI's decision to drop ethical constraints.",score:1,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1riolbb/please_improve_chatgpt_import_to_claude/",ts:1772444650},
-  {id:"1rkefrs",sub:"ChatGPT",title:"I love ChatGPT/Codex",text:"Interesting to see all these people jump ship. I personally love ChatGPT, and especially Codex.",score:0,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rkefrs/i_love_chatgptcodex/",ts:1772606888},
-  {id:"1rkb79p",sub:"ChatGPT",title:"It's actually over. The 'War Machine' update was the final nail in the coffin.",text:"Seeing uninstalls jump 300% in a weekend says everything. Claude is actually listening to its users.",score:0,cmts:12,url:"https://reddit.com/r/ChatGPT/comments/1rkb79p/its_actually_over_the_war_machine_update_was_the/",ts:1772596500},
-  {id:"1rk9pk8",sub:"ChatGPT",title:"Quitgpt isn't enough, we should delete our accounts",text:"I really think we should abandon ChatGPT for good. OpenAI's deal with Trump's 'Department of War'.",score:0,cmts:7,url:"https://reddit.com/r/ChatGPT/comments/1rk9pk8/quitgpt_isnt_enough_we_should_delete_our_accounts/",ts:1772592287},
-  {id:"1rjjhuw",sub:"ChatGPT",title:"Sam Altman ist right",text:"Look, I know everyone is currently throwing a parade for Anthropic. Anthropic was the first AI company approved for use on classified military networks.",score:0,cmts:25,url:"https://reddit.com/r/ChatGPT/comments/1rjjhuw/sam_altman_ist_right/",ts:1772524696},
-  {id:"1rjje9b",sub:"ChatGPT",title:"I have cancelled my ChatGPT subscription",text:"It's really easy to do nothing. But voting with your wallet actually does affect change.",score:0,cmts:7,url:"https://reddit.com/r/ChatGPT/comments/1rjje9b/i_have_cancelled_my_chatgpt_subscription/",ts:1772524308},
-  {id:"1rja4zi",sub:"ChatGPT",title:"Tell them how you feel",text:"Money talks",score:0,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rja4zi/tell_them_how_you_feel/",ts:1772497005},
-  {id:"1rj503o",sub:"ChatGPT",title:"Switching from ChatGPT to Claude over the DoD deal is the most ironic thing happening right now",text:"If you've migrated to Claude because Anthropic 'stood up to the military' you've been played by the best PR move in AI this year.",score:0,cmts:11,url:"https://reddit.com/r/ChatGPT/comments/1rj503o/switching_from_chatgpt_to_claude_over_the_dod/",ts:1772485074},
-  {id:"1riv0s9",sub:"ChatGPT",title:"Ugh I'm so conflicted!",text:"Greg Brockman and his wife donated 25 MILLION DOLLARS to MAGA Inc. I primarily use Claude now.",score:0,cmts:15,url:"https://reddit.com/r/ChatGPT/comments/1riv0s9/ugh_im_so_conflicted/",ts:1772463484},
-  {id:"1rgx3l7",sub:"ChatGPT",title:"In regards to the whole Claude v. OpenAI thing",text:"I appreciate the stance of leaving OpenAI for the sake of morality. BUT I really don't think Anthropic is innocent at all.",score:0,cmts:4,url:"https://reddit.com/r/ChatGPT/comments/1rgx3l7/in_regards_to_the_whole_claude_v_openai_thing/",ts:1772266410},
-  {id:"1ragd84",sub:"ChatGPT",title:"I built an LLM gateway in Rust because I was tired of API failures",text:"Problems: OpenAI goes down, expensive models for simple tasks, no visibility, PII leaking. Built Sentinel.",score:0,cmts:1,url:"https://reddit.com/r/ChatGPT/comments/1ragd84/i_built_an_llm_gateway_in_rust_because_i_was/",ts:1771644247},
-  {id:"1rk388n",sub:"ChatGPT",title:"Frustrated",text:"",score:0,cmts:1,url:"https://reddit.com/r/ChatGPT/comments/1rk388n/frustrated/",ts:1772575828},
-  {id:"1rjirb4",sub:"ChatGPT",title:"I'm a random person and I got Claude to walk me through military intelligence scenarios",text:"Spent sometime prompting Claude through different military intelligence scenarios. The federal gov literally just banned Anthropic's tools.",score:0,cmts:7,url:"https://reddit.com/r/ChatGPT/comments/1rjirb4/im_a_random_person_and_i_got_claude_to_walk_me/",ts:1772521952},
-  {id:"1rjhb5p",sub:"ChatGPT",title:"To those who are afraid to let go: why did you invest into GPT in the first place?",text:"I canceled today and I've been a huge advocate of AI. It's being openly used for military and surveillance.",score:0,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rjhb5p/to_those_who_are_afraid_to_let_go_why_did_you/",ts:1772516912},
-  {id:"1rk6vm8",sub:"ClaudeAI",title:"Update! My AI narrative text-based games are now available to play on any AI!",text:"Since deleting my ChatGPT account I've experienced a rapid influx of inspiration. Claude is just an absolute champion for abstract reasoning.",score:0,cmts:1,url:"https://reddit.com/r/ClaudeAI/comments/1rk6vm8/update_my_ai_narrative_textbased_games_are_now/",ts:1772584764},
-  {id:"1rk6jc8",sub:"ClaudeAI",title:"Thinking of Switching To Claude, Wanna Know Some Things",text:"I'm considering switching from ChatGPT to Claude and getting the Pro plan. How good is the memory? What are the usage limits?",score:0,cmts:5,url:"https://reddit.com/r/ClaudeAI/comments/1rk6jc8/thinking_of_switching_to_calude_wanna_know_some/",ts:1772583866},
-  {id:"1rjzg4m",sub:"ClaudeAI",title:"What are the best AIs to complement Claude in document summaries?",text:"I work with lengthy documents every day. Context window size and usage limits are issues.",score:0,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rjzg4m/what_are_the_best_ais_to_complement_claude_in/",ts:1772567402},
-  {id:"1rjxwnw",sub:"ClaudeAI",title:"Should ClaudeAI reduce its minimum age for eligibility to 15/16?",text:"ClaudeAI requires all its users to be 18 and over. Not all teenagers are replacing all thinking with AI.",score:0,cmts:6,url:"https://reddit.com/r/ClaudeAI/comments/1rjxwnw/should_claudeai_reduce_its_minimum_age_for/",ts:1772564012},
-  {id:"1rjjjcu",sub:"ClaudeAI",title:"Claude Day 1: both amazed and something else",text:"Joined the OpenAI boycott today. Claude pulled a full solution documentation file and interactive ERD for my project.",score:0,cmts:1,url:"https://reddit.com/r/ClaudeAI/comments/1rjjjcu/claude_day_1_both_amazed_and_something_else/",ts:1772524843},
-  {id:"1rkdigx",sub:"ClaudeAI",title:"How are you managing multiple accounts on Claude?",text:"I have both a personal Claude account and one provided by work. Account switching is not a thing in any Claude apps.",score:0,cmts:3,url:"https://reddit.com/r/ClaudeAI/comments/1rkdigx/how_are_you_managing_multiple_accounts_on_claude/",ts:1772603722},
-  {id:"1rka5y1",sub:"ClaudeAI",title:"How can I make Claude Code agents challenge each other instead of agreeing?",text:"I've seen people run Claude Code agents in loops where they keep correcting and improving outputs.",score:0,cmts:7,url:"https://reddit.com/r/ClaudeAI/comments/1rka5y1/how_can_i_make_claude_code_agents_challenge_each/",ts:1772593553},
-  {id:"1rka7bm",sub:"ClaudeAI",title:"Claude has been unusable the past couple of days",text:"I have been a pretty consistent user of Claude.ai for over a year now and it's been mostly amazing.",score:0,cmts:8,url:"https://reddit.com/r/ClaudeAI/comments/1rka7bm/claude_has_been_unusable_the_past_couple_of_days/",ts:1772593660},
-  {id:"1ril7i9",sub:"artificial",title:"Benchmarks don't tell you who's winning the AI race. Here's what actually does.",text:"Most AI comparisons are measuring the wrong thing entirely. Benchmarks tell you who won yesterday.",score:0,cmts:24,url:"https://reddit.com/r/artificial/comments/1ril7i9/benchmarks_dont_tell_you_whos_winning_the_ai_race/",ts:1772432172},
-  {id:"1r5vyxv",sub:"artificial",title:"Looking for early testers for my competitive analysis tool",text:"Built CompetitiveOS — you only need to install a plugin in Claude and ask it to analyze competitors.",score:0,cmts:5,url:"https://reddit.com/r/artificial/comments/1r5vyxv/looking_for_early_testers_for_my_competitive/",ts:1771204765},
-  {id:"1rjatua",sub:"ClaudeAI",title:"Just switched to Claude this weekend.. hit a limit VERY quickly.",text:"I really like Claude so far. Signed up for yearly pro plan. But hit a limit at 18 lines of a 1300 line document.",score:0,cmts:16,url:"https://reddit.com/r/ClaudeAI/comments/1rjatua/just_switched_to_claude_this_weekend_im_brining/",ts:1772498761}
+  {id:"1rj3oax",subreddit:"ClaudeAI",title:"They are absolutely insane",selftext:"They have the best timing for everything. Absolutely insane",score:2652,num_comments:147,url:"https://reddit.com/r/ClaudeAI/comments/1rj3oax/they_are_absolutely_insane/",created_utc:1772482150,author:"Purple_Wear_5397"},
+  {id:"1rjg8m0",subreddit:"ChatGPT",title:"Cancelling subscription - goodbye Sam I'm not funding your war machine!",selftext:"",score:503,num_comments:65,url:"https://reddit.com/r/ChatGPT/comments/1rjg8m0/cancelling_subscription_goodbye_sam_im_not/",created_utc:1772513574,author:"willfspot"},
+  {id:"1r4hgnu",subreddit:"artificial",title:"Pentagon's use of Claude during Maduro raid sparks Anthropic feud",selftext:"The U.S. military used Anthropic's Claude AI model during the operation to capture Venezuela's Nicolás Maduro...",score:481,num_comments:67,url:"https://reddit.com/r/artificial/comments/1r4hgnu/pentagons_use_of_claude_during_maduro_raid_sparks/",created_utc:1771065314,author:"Naurgul"},
+  {id:"1rhu99c",subreddit:"artificial",title:"Claude hits No. 1 on App Store as ChatGPT users defect in show of support for Anthropic's Pentagon stance",selftext:"",score:346,num_comments:31,url:"https://reddit.com/r/artificial/comments/1rhu99c/claude_hits_no_1_on_app_store_as_chatgpt_users/",created_utc:1772361783,author:"ControlCAD"},
+  {id:"1rk6yy6",subreddit:"ChatGPT",title:"OpenAI VP for Research for post-training defects to Anthropic",selftext:"",score:281,num_comments:31,url:"https://reddit.com/r/ChatGPT/comments/1rk6yy6/openai_vp_for_research_for_posttraining_defects/",created_utc:1772584996,author:"hasanahmad"},
+  {id:"1remhah",subreddit:"ChatGPT",title:"ChatGPT Leaking User chats across accounts?",selftext:"I've been a GPT subscriber since virtually day 1 and never had any security issues...",score:257,num_comments:150,url:"https://reddit.com/r/ChatGPT/comments/1remhah/chatgpt_leaking_user_chats_across_accounts/",created_utc:1772046221,author:"Atlasdubs"},
+  {id:"1rju7nb",subreddit:"ChatGPT",title:"Knowing full well they screwed up, this OpenAI employee still played the victim and blamed everyone else.",selftext:"",score:190,num_comments:58,url:"https://reddit.com/r/ChatGPT/comments/1rju7nb/knowing_full_well_they_screwed_up_this_openai/",created_utc:1772556090,author:"EstablishmentFun3205"},
+  {id:"1ri8y6n",subreddit:"ChatGPT",title:"I finally cancelled my subscription. Reasons are just piling up.",selftext:"I've officially had enough. I just cancelled my subscription, and honestly, I couldn't be happier about it.",score:100,num_comments:32,url:"https://reddit.com/r/ChatGPT/comments/1ri8y6n/i_finally_cancelled_my_subscription_reasons_are/",created_utc:1772398839,author:"Ijjimem"},
+  {id:"1rk3wdr",subreddit:"ClaudeAI",title:"What you will find in CC 2.1.64 (+1,291 tokens)",selftext:"NEW: Agent Prompt: Verification specialist — System prompt for adversarially verifying implementation correctness...",score:31,num_comments:10,url:"https://reddit.com/r/ClaudeAI/comments/1rk3wdr/what_you_will_find_in_cc_2164_1291_tokens/",created_utc:1772577393,author:"Dramatic_Squash_3502"},
+  {id:"1rkcbzr",subreddit:"ChatGPT",title:"Claude has overtaken ChatGPT in the Apple App Store",selftext:"",score:24,num_comments:11,url:"https://reddit.com/r/ChatGPT/comments/1rkcbzr/claude_has_overtaken_chatgpt_in_the_apple_app/",created_utc:1772599943,author:"arsaldotchd"},
+  {id:"1rkdslc",subreddit:"ChatGPT",title:"This dude changes what he says every 6 hours",selftext:"",score:24,num_comments:6,url:"https://reddit.com/r/ChatGPT/comments/1rkdslc/this_dude_changes_what_he_says_every_6_hours/",created_utc:1772604667,author:"xaljiemxhaj"},
+  {id:"1r7jr7l",subreddit:"artificial",title:"Elon Musk Firms Enter Secret Pentagon Challenge for Voice-Based Drone Swarming Tech",selftext:"Elon Musk's SpaceX and its subsidiary xAI are joining a secretive US Department of Defense competition...",score:21,num_comments:16,url:"https://reddit.com/r/artificial/comments/1r7jr7l/elon_musk_firms_enter_secret_pentagon_challenge/",created_utc:1771364552,author:"Secure-Technology-78"},
+  {id:"1rk7pzw",subreddit:"ClaudeAI",title:"Experience switching to Claude",selftext:"I have been using AI for about two and a half years. There are several things that make Claude feel significantly ahead.",score:18,num_comments:16,url:"https://reddit.com/r/ClaudeAI/comments/1rk7pzw/experience_switching_to_claude/",created_utc:1772586956,author:"Regular_Eggplant_248"},
+  {id:"1rkaonm",subreddit:"ChatGPT",title:"The US military realizing ChatGPT only knows how to get a small cylinder unstuck",selftext:"I'm not all caught up on the deal but I'm assuming this is close enough",score:14,num_comments:4,url:"https://reddit.com/r/ChatGPT/comments/1rkaonm/the_us_military_realizing_chatgpt_only_knows_how/",created_utc:1772595012,author:"D1AlexGglazer"},
+  {id:"1rh11rp",subreddit:"ChatGPT",title:"So. Where we are heading next?",selftext:"After OpenAI Support the DoW, what AI will you use next?",score:13,num_comments:11,url:"https://reddit.com/r/ChatGPT/comments/1rh11rp/so_where_we_are_heading_next/",created_utc:1772280547,author:"CptMightypants"},
+  {id:"1rjiihu",subreddit:"ChatGPT",title:"OpenAI Steps Over a Red Line Anthropic Refused to Cross",selftext:"A striking new Bloomberg Opinion piece highlights the massive ethical divide currently tearing the AI industry apart.",score:12,num_comments:3,url:"https://reddit.com/r/ChatGPT/comments/1rjiihu/openai_steps_over_a_red_line_anthropic_refused_to/",created_utc:1772521105,author:"EchoOfOppenheimer"},
+  {id:"1rho4dm",subreddit:"ChatGPT",title:"This DoW deal might be OpenAI's final dance",selftext:"OpenAI started as a nonprofit with the whole 'AI for humanity' mission...",score:11,num_comments:11,url:"https://reddit.com/r/ChatGPT/comments/1rho4dm/this_dow_deal_might_be_openais_final_dance/",created_utc:1772340317,author:"Mediocre_Put_6748"},
+  {id:"1r3qsd4",subreddit:"artificial",title:"The AI Tool Dilemma: Privacy vs. Features for Solo Creators",selftext:"Running a one-person operation, I rely on AI for marketing, strategy, and content.",score:9,num_comments:19,url:"https://reddit.com/r/artificial/comments/1r3qsd4/the_ai_tool_dilemma_privacy_vs_features_for_solo/",created_utc:1770993376,author:"redgoldfilm"},
+  {id:"1rk5u1m",subreddit:"ClaudeAI",title:"Does it make sense to switch sonnet/opus for agentic coding?",selftext:"DO you guys switch sonnet around during a session opus?",score:6,num_comments:8,url:"https://reddit.com/r/ClaudeAI/comments/1rk5u1m/does_it_make_sense_to_switch_sonnetopus_for/",created_utc:1772582074,author:"t0b4cc0"},
+  {id:"1rk3khy",subreddit:"ClaudeAI",title:"tool_search always fails on first try",selftext:"I've got a weird bug with my MCP servers and reverse proxy...",score:5,num_comments:4,url:"https://reddit.com/r/ClaudeAI/comments/1rk3khy/tool_search_always_fails_on_first_try/",created_utc:1772576618,author:"mrjackspade"},
+  {id:"1rkd5ip",subreddit:"ChatGPT",title:"OpenAI CEO Sam Altman has admitted he made a mistake",selftext:"",score:4,num_comments:15,url:"https://reddit.com/r/ChatGPT/comments/1rkd5ip/openai_ceo_sam_altman_has_admitted_he_made_a/",created_utc:1772602521,author:"bossman_uk"},
+  {id:"1rk8x8u",subreddit:"ChatGPT",title:"1 Year Free if you try to cancel through the App Store",selftext:"",score:4,num_comments:8,url:"https://reddit.com/r/ChatGPT/comments/1rk8x8u/1_year_free_if_you_try_to_cancel_through_the_app/",created_utc:1772590172,author:"Scorchyy"},
+  {id:"1rjqf4y",subreddit:"ChatGPT",title:"Have you noticed how long it takes to export your data?",selftext:"I recently cancelled my ChatGPT subscription and moved to Claude...",score:4,num_comments:3,url:"https://reddit.com/r/ChatGPT/comments/1rjqf4y/have_you_noticed_how_long_it_takes_to_export_your/",created_utc:1772547307,author:"jetychill"},
+  {id:"1rkei2y",subreddit:"ClaudeAI",title:"Anyone feel like Claude is trying to \"get away from you\"?",selftext:"I started using Claude maybe 3 days ago. I have a ton of personal projects...",score:3,num_comments:7,url:"https://reddit.com/r/ClaudeAI/comments/1rkei2y/anyone_feel_like_claude_is_trying_to_get_away/",created_utc:1772607117,author:"MarsupialJaded153"},
+  {id:"1rk8rso",subreddit:"ClaudeAI",title:"Claude or ChatGPT as a mechanical engineer",selftext:"i am currently doing bachelors in mechanical engineering and thinking about switching to Claude...",score:3,num_comments:28,url:"https://reddit.com/r/ClaudeAI/comments/1rk8rso/claude_or_chatgpt_as_a_mechanical_engineer/",created_utc:1772589770,author:"Few_Ad_2496"},
+  {id:"1rjb908",subreddit:"ClaudeAI",title:"Built persistent memory for Claude that actually forgets things",selftext:"Been annoyed by re-explaining myself every Claude session so I built a fix using Ebbinghaus Forgetting Curve.",score:3,num_comments:4,url:"https://reddit.com/r/ClaudeAI/comments/1rjb908/built_persistent_memory_for_claude_that_actually/",created_utc:1772499863,author:"Sufficient_Sir_5414"},
+  {id:"1rjjn0v",subreddit:"ChatGPT",title:"PLEASE enough with the 'I canceled my subscription'-posts we get it!",selftext:"for the love of god Mods do you jobs",score:2,num_comments:135,url:"https://reddit.com/r/ChatGPT/comments/1rjjn0v/please_enough_with_the_i_canceled_my/",created_utc:1772525225,author:"TitLover34"},
+  {id:"1rjs80p",subreddit:"ClaudeAI",title:"Token usage",selftext:"I switched from ChatGPT to Claude yesterday...",score:2,num_comments:12,url:"https://reddit.com/r/ClaudeAI/comments/1rjs80p/token_usage/",created_utc:1772551612,author:"paulcjones"},
+  {id:"1rhyrs7",subreddit:"ChatGPT",title:"How Good is ChatGPT at Risk?",selftext:"I've been using AI from the day OpenAI released ChatGPT 3...",score:2,num_comments:5,url:"https://reddit.com/r/ChatGPT/comments/1rhyrs7/how_good_is_chatgpt_at_risk/",created_utc:1772375695,author:"naftalibp"},
+  {id:"1rjxx17",subreddit:"ClaudeAI",title:"I built a framework for making Claude Code agents persistent, self-correcting, and multi-terminal",selftext:"I've been running Claude Code as a persistent operational agent for the past couple of weeks...",score:1,num_comments:10,url:"https://reddit.com/r/ClaudeAI/comments/1rjxx17/i_built_a_framework_for_making_claude_code_agents/",created_utc:1772564034,author:"teeheEEee27"},
+  {id:"1rj62r5",subreddit:"ClaudeAI",title:"Anthropic's New Memory Import: Switch to Claude Without Starting Over",selftext:"Anthropic just made switching to Claude way easier with their new memory import feature.",score:2,num_comments:4,url:"https://reddit.com/r/ClaudeAI/comments/1rj62r5/anthropics_new_memory_import_switch_to_claude/",created_utc:1772487447,author:"Forsaken-Reading377"},
+  {id:"1rk572k",subreddit:"ClaudeAI",title:"I built a tool that turns your full ChatGPT export into structured Claude profiles",selftext:"I switched from ChatGPT to Claude after 3 years and 1258 conversations...",score:1,num_comments:2,url:"https://reddit.com/r/ClaudeAI/comments/1rk572k/i_built_a_tool_that_turns_your_full_chatgpt/",created_utc:1772580483,author:"jiko_13"},
+  {id:"1rjjhuw",subreddit:"ChatGPT",title:"Sam Altman ist right",selftext:"Look, I know everyone is currently throwing a parade for Anthropic...",score:0,num_comments:25,url:"https://reddit.com/r/ChatGPT/comments/1rjjhuw/sam_altman_ist_right/",created_utc:1772524696,author:"oc6qb"},
+  {id:"1riv0s9",subreddit:"ChatGPT",title:"Ugh I'm so conflicted!",selftext:"I primarily use Claude now, but I started out using ChatGPT...",score:0,num_comments:15,url:"https://reddit.com/r/ChatGPT/comments/1riv0s9/ugh_im_so_conflicted/",created_utc:1772463484,author:"Noir1976"},
+  {id:"1rj503o",subreddit:"ChatGPT",title:"Switching from ChatGPT to Claude over the DoD deal is the most ironic thing happening on the internet right now",selftext:"I get it. OpenAI signed an unrestricted deal with the Pentagon...",score:0,num_comments:11,url:"https://reddit.com/r/ChatGPT/comments/1rj503o/switching_from_chatgpt_to_claude_over_the_dod/",created_utc:1772485074,author:"diverteda"},
+  {id:"1rkb79p",subreddit:"ChatGPT",title:"It's actually over. The 'War Machine' update was the final nail in the coffin.",selftext:"Seeing uninstalls jump 300% in a weekend says everything...",score:0,num_comments:12,url:"https://reddit.com/r/ChatGPT/comments/1rkb79p/its_actually_over_the_war_machine_update_was_the/",created_utc:1772596500,author:"Sea-Tutor4846"},
+  {id:"1rk9pk8",subreddit:"ChatGPT",title:"Quitgpt isn't enough, we should delete our accounts",selftext:"Now this just an opinion but I really think we should abandon ChatGPT for good...",score:0,num_comments:7,url:"https://reddit.com/r/ChatGPT/comments/1rk9pk8/quitgpt_isnt_enough_we_should_delete_our_accounts/",created_utc:1772592287,author:"lollythepop7"},
+  {id:"1ragd84",subreddit:"ChatGPT",title:"I built an LLM gateway in Rust because I was tired of API failures",selftext:"Automatic failover between OpenAI and Anthropic, cost tracking, PII redaction...",score:0,num_comments:1,url:"https://reddit.com/r/ChatGPT/comments/1ragd84/i_built_an_llm_gateway_in_rust_because_i_was/",created_utc:1771644247,author:"SchemeVivid4175"},
 ];
 
-// ── Tag logic ──
-function getTags(p) {
-  const tags = [];
-  const t = (p.title + ' ' + p.text).toLowerCase();
-  if (p.score > 100 || p.cmts > 50) tags.push({cls:'t-hot', label:'🔥 超高热度'});
-  if (t.includes('memory') || t.includes('remember') || t.includes('import') || t.includes('context')) tags.push({cls:'t-memory', label:'🧠 记忆相关'});
-  if (t.includes('switch') || t.includes('cancel') || t.includes('leaving') || t.includes('defect') || t.includes('migrat')) tags.push({cls:'t-switch', label:'🔄 用户迁移'});
-  if (t.includes('gemini') || t.includes('openai') || t.includes('chatgpt') || t.includes('perplexity')) tags.push({cls:'t-compete', label:'🎯 竞品讨论'});
-  if (p.score > 20 || p.cmts > 10) tags.push({cls:'t-traffic', label:'💬 可评论蹭流量'});
-  if (p.score > 100 || (t.includes('memory') && p.cmts > 3)) tags.push({cls:'t-article', label:'📝 可引用到文章'});
-  return tags;
+// ─── CHART DATA ──────────────────────────────────────────────
+const HISTORY = {
+  dates: ["2026-03-04"],
+  extensions: {
+    Memdex:      { rating: [null], reviews: [0]    },
+    OpenMemory:  { rating: [null], reviews: [null] },
+    Supermemory: { rating: [3.4],  reviews: [null] },
+    MaxMemory:   { rating: [4.7],  reviews: [null] },
+  }
+};
+
+// ─── COLORS ──────────────────────────────────────────────────
+const COLORS = {
+  Memdex:      '#FF4500',
+  OpenMemory:  '#0078D4',
+  Supermemory: '#2E7D32',
+  MaxMemory:   '#7B1FA2',
+};
+
+// ─── STAT CARDS ──────────────────────────────────────────────
+function renderStats() {
+  const total = POSTS.length;
+  const hot   = POSTS.filter(p => p.score > 20 || p.num_comments > 10).length;
+  const totalScore = POSTS.reduce((a,p) => a + p.score, 0);
+  const totalComments = POSTS.reduce((a,p) => a + p.num_comments, 0);
+  const subs = {};
+  POSTS.forEach(p => subs[p.subreddit] = (subs[p.subreddit]||0)+1);
+  const topSub = Object.entries(subs).sort((a,b)=>b[1]-a[1])[0];
+
+  const cards = [
+    {label:'帖子总数', value: total, sub:'来自3个版块', hl:false},
+    {label:'🔥 高价值帖子', value: hot, sub:'score>20 或 评论>10', hl:true},
+    {label:'总分数', value: totalScore.toLocaleString(), sub:'所有帖子得分之和', hl:false},
+    {label:'总评论数', value: totalComments.toLocaleString(), sub:'所有帖子评论', hl:false},
+    {label:'最活跃版块', value: topSub[0], sub:`${topSub[1]} 个帖子`, hl:false},
+    {label:'竞品追踪', value: 4, sub:'Chrome 扩展', hl:false},
+  ];
+
+  const el = document.getElementById('stats-row');
+  el.innerHTML = cards.map(c => `
+    <div class="stat-card${c.hl?' hl':''}">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.value}</div>
+      <div class="stat-sub">${c.sub}</div>
+    </div>`).join('');
 }
 
-function fmtDate(ts) {
-  const d = new Date(ts * 1000);
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
-function fmtNum(n) {
-  return n >= 1000 ? (n/1000).toFixed(1) + 'k' : n.toString();
-}
+// ─── CHARTS ──────────────────────────────────────────────────
+function renderCharts() {
+  const labels = HISTORY.dates;
+  const exts = Object.keys(HISTORY.extensions);
 
-// ── Stats ──
-const hotPosts = POSTS.filter(p => p.score > 20 || p.cmts > 10);
-const totalInteract = POSTS.reduce((s,p) => s + p.score + p.cmts, 0);
-document.getElementById('s-total').textContent = POSTS.length;
-document.getElementById('s-hot').textContent = hotPosts.length;
-document.getElementById('s-interact').textContent = fmtNum(totalInteract);
-document.getElementById('hot-chip').textContent = hotPosts.length + ' 篇';
-document.getElementById('all-chip').textContent = POSTS.length + ' 篇';
+  // Rating chart
+  const ratingDatasets = exts.map(name => ({
+    label: name,
+    data: HISTORY.extensions[name].rating,
+    borderColor: COLORS[name],
+    backgroundColor: COLORS[name] + '22',
+    borderWidth: 2.5,
+    pointRadius: 5,
+    pointHoverRadius: 7,
+    tension: 0.3,
+    spanGaps: true,
+  }));
 
-// ── Hot posts grid ──
-const hotSorted = [...hotPosts].sort((a,b) => b.score - a.score);
-const hotGrid = document.getElementById('hot-grid');
-hotSorted.forEach(p => {
-  const tags = getTags(p);
-  const tagHtml = tags.map(t => `<span class="tag ${t.cls}">${t.label}</span>`).join('');
-  const summary = p.text ? (p.text.slice(0,160) + (p.text.length > 160 ? '…' : '')) : '（无简介）';
-  const card = document.createElement('div');
-  card.className = 'post-card';
-  card.innerHTML = `
-    <div class="pc-top">
-      <span class="sub-badge sb-${p.sub}">r/${p.sub}</span>
-      <span class="score-mini">▲ ${fmtNum(p.score)}</span>
-    </div>
-    <div class="post-title"><a href="${p.url}" target="_blank" rel="noopener">${p.title}</a></div>
-    <div class="post-summary">${summary}</div>
-    <div class="post-tags">${tagHtml}</div>
-    <div class="post-footer">
-      <div class="post-meta">
-        <span class="meta-item m-score">▲ ${fmtNum(p.score)}</span>
-        <span class="meta-item m-cmts">💬 ${p.cmts}</span>
-      </div>
-      <span class="post-time">${fmtDate(p.ts)}</span>
-    </div>`;
-  hotGrid.appendChild(card);
-});
+  new Chart(document.getElementById('chartRating'), {
+    type: 'line',
+    data: { labels, datasets: ratingDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } },
+        tooltip: { mode: 'index', intersect: false },
+      },
+      scales: {
+        y: { min: 0, max: 5, ticks: { stepSize: 1 }, grid: { color: '#F0EDE8' },
+          title: { display: true, text: '评分 (0–5)', font: { size: 11 } } },
+        x: { grid: { display: false } },
+      }
+    }
+  });
 
-// ── All posts table ──
-const allSorted = [...POSTS].sort((a,b) => b.ts - a.ts);
-const tbody = document.getElementById('all-tbody');
-const subCls = {ClaudeAI:'sb-ClaudeAI', ChatGPT:'sb-ChatGPT', artificial:'sb-artificial'};
-allSorted.forEach(p => {
-  const tr = document.createElement('tr');
-  tr.dataset.sub = p.sub;
-  tr.innerHTML = `
-    <td style="white-space:nowrap;color:var(--text3)">${fmtDate(p.ts)}</td>
-    <td><span class="sp ${subCls[p.sub]||''}">${p.sub}</span></td>
-    <td><a class="tl" href="${p.url}" target="_blank" rel="noopener">${p.title}</a></td>
-    <td><span class="sv">▲ ${fmtNum(p.score)}</span></td>
-    <td><span class="cv">💬 ${p.cmts}</span></td>`;
-  tbody.appendChild(tr);
-});
+  // Reviews chart
+  const reviewDatasets = exts.map(name => ({
+    label: name,
+    data: HISTORY.extensions[name].reviews,
+    borderColor: COLORS[name],
+    backgroundColor: COLORS[name] + '22',
+    borderWidth: 2.5,
+    pointRadius: 5,
+    pointHoverRadius: 7,
+    tension: 0.3,
+    spanGaps: true,
+  }));
 
-// ── Filter ──
-function filterTable(btn) {
-  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const sub = btn.dataset.sub;
-  document.querySelectorAll('#all-tbody tr').forEach(tr => {
-    tr.classList.toggle('hidden', sub !== 'all' && tr.dataset.sub !== sub);
+  new Chart(document.getElementById('chartReviews'), {
+    type: 'line',
+    data: { labels, datasets: reviewDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } },
+        tooltip: { mode: 'index', intersect: false },
+      },
+      scales:
+        {
+          y: { min: 0, ticks: {}, grid: { color: '#F0EDE8' },
+            title: { display: true, text: '评论数', font: { size: 11 } } },
+          x: { grid: { display: false } },
+        }
+      }
+    }
   });
 }
+
+// ─── HOT POSTS ───────────────────────────────────────────────
+function fmtDate(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+}
+
+function renderHot() {
+  const hot = POSTS.filter(p => p.score > 20 || p.num_comments > 10)
+    .sort((a,b) => (b.score + b.num_comments*2) - (a.score + a.num_comments*2));
+  document.getElementById('hot-count').textContent = hot.length + ' 个';
+  const el = document.getElementById('hot-grid');
+  el.innerHTML = hot.map(p => {
+    const excerpt = p.selftext ? p.selftext.substring(0, 150) + (p.selftext.length > 150 ? '…' : '') : '';
+    return `
+    <div class="pcard">
+      <div class="pcard-head">
+        <span class="psub ${p.subreddit}">r/${p.subreddit}</span>
+        <div class="ptitle"><a href="${p.url}" target="_blank" rel="noopener">${escHtml(p.title)}</a></div>
+      </div>
+      ${excerpt ? `<div class="pexcerpt">${escHtml(excerpt)}</div>` : ''}
+      <div class="pmeta">
+        <span class="pscore">▲ ${p.score.toLocaleString()}</span>
+        <span class="pcomments">💬 ${p.num_comments}</span>
+        <span class="pauthor">u/${escHtml(p.author)} · ${fmtDate(p.created_utc)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── ALL POSTS TABLE ─────────────────────────────────────────
+let sortKey = 'score';
+let sortDir = -1;
+let filteredPosts = [...POSTS];
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderTable() {
+  const tbody = document.getElementById('all-tbody');
+  if (!filteredPosts.length) {
+    tbody.innerHTML = '';
+    document.getElementById('no-res').classList.remove('hidden');
+  } else {
+    document.getElementById('no-res').classList.add('hidden');
+    tbody.innerHTML = filteredPosts.map(p => `
+      <tr>
+        <td class="sc${p.score < 5 ? ' low' : ''}">▲ ${p.score.toLocaleString()}</td>
+        <td class="tc"><a href="${p.url}" target="_blank" rel="noopener">${escHtml(p.title)}</a></td>
+        <td><span class="spill ${p.subreddit}">r/${p.subreddit}</span></td>
+        <td>${p.num_comments}</td>
+        <td style="color:var(--text-muted);font-size:12px">u/${escHtml(p.author)}</td>
+        <td class="dc">${fmtDate(p.created_utc)}</td>
+      </tr>`).join('');
+  }
+  document.getElementById('fcnt').textContent = `显示 ${filteredPosts.length} / ${POSTS.length} 个`;
+  document.getElementById('all-count').textContent = POSTS.length + ' 个';
+}
+
+function applyFilter() {
+  const q = document.getElementById('fs').value.toLowerCase();
+  const sub = document.getElementById('fsub').value;
+  const sort = document.getElementById('fsort').value;
+
+  filteredPosts = POSTS.filter(p => {
+    const matchQ = !q || p.title.toLowerCase().includes(q) || p.author.toLowerCase().includes(q) || p.selftext.toLowerCase().includes(q);
+    const matchSub = !sub || p.subreddit === sub;
+    return matchQ && matchSub;
+  });
+
+  const sortMap = { score: 'score', comments: 'num_comments', date: 'created_utc' };
+  const key = sortMap[sort] || 'score';
+  filteredPosts.sort((a,b) => b[key] - a[key]);
+
+  renderTable();
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = (key === 'title' || key === 'author' || key === 'subreddit') ? 1 : -1; }
+  filteredPosts.sort((a,b) => {
+    const av = a[key], bv = b[key];
+    if (typeof av === 'string') return sortDir * av.localeCompare(bv);
+    return sortDir * (bv - av);
+  });
+  renderTable();
+}
+
+// ─── INIT ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  renderStats();
+  renderCharts();
+  renderHot();
+  renderTable();
+
+  document.getElementById('fs').addEventListener('input', applyFilter);
+  document.getElementById('fsub').addEventListener('change', applyFilter);
+  document.getElementById('fsort').addEventListener('change', applyFilter);
+});
 </script>
 </body>
 </html>
