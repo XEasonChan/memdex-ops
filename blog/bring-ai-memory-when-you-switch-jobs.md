@@ -20,7 +20,9 @@ When you change jobs, it stays behind.
 ## The New Gap in Professional Portability
 
 <img width="1408" height="768" alt="Gemini_Generated_Image_wk0muawk0muawk0m" src="https://github.com/user-attachments/assets/a9a2e9c4-c1e2-4f69-9e76-e8286a689150" />
+
 *Employee switching jobs without memory is becoming major problem recently.*
+
 
 Traditional employment exits had a clear logic: your judgment and experience are yours; the company's files and IP are theirs. That distinction held up reasonably well for decades.
 
