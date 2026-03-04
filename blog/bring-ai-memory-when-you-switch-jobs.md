@@ -19,8 +19,8 @@ When you change jobs, it stays behind.
 
 ## The New Gap in Professional Portability
 
-![When the company owns the account, they own the memory inside it](https://techcrunch.com/wp-content/uploads/2023/09/GettyImages-1647521480-e1694685235777.jpg)
-*ChatGPT Team accounts belong to the employer — and so does the AI collaboration context built inside them. (Source: TechCrunch / Getty Images)*
+<img width="1408" height="768" alt="Gemini_Generated_Image_wk0muawk0muawk0m" src="https://github.com/user-attachments/assets/a9a2e9c4-c1e2-4f69-9e76-e8286a689150" />
+*Employee switching jobs without memory is becoming major problem recently.*
 
 Traditional employment exits had a clear logic: your judgment and experience are yours; the company's files and IP are theirs. That distinction held up reasonably well for decades.
 
