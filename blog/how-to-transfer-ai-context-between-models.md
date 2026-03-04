@@ -29,7 +29,8 @@ This is your context — and until recently, it had nowhere to go. Switch platfo
 
 ## How the Official Tool Works
 
-![Gemini — one of several AI platforms that can both send and receive memory imports](https://storage.googleapis.com/gweb-uniblog-publish-prod/images/IO25_Gemini_SS.width-1300.png)
+<img width="2600" height="1463" alt="image" src="https://github.com/user-attachments/assets/e9737e50-c1e4-416c-848e-b4f08aba36e6" />
+
 *Claude's import tool works with ChatGPT, Gemini, Copilot, and other major platforms. (Source: Google Blog)*
 
 The tool at `claude.com/import-memory` works in a few steps:
@@ -97,8 +98,8 @@ The import tool addresses the explicit layer. The implicit layer — the accumul
 
 ## What a Complete Solution Looks Like
 
-![Each new model release is a potential upgrade — but only if your context can travel with you](https://storage.googleapis.com/gweb-uniblog-publish-prod/images/gemini-3-flash_final_benchmark-table_light_25-1.original.png)
-*Model improvements compound over time — but only for users whose context isn't locked to a previous generation. (Source: Google Blog)*
+<img width="1600" height="911" alt="Code_Generated_Image" src="https://github.com/user-attachments/assets/6e32ca5e-6d02-4914-804c-f48ebcba8e7c" />
+*Model improvements compound over time — but only for users whose context isn't locked to a previous generation.*
 
 A genuinely portable AI memory layer needs to work differently at the architectural level:
 
