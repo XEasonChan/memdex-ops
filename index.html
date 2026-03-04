@@ -1,230 +1,658 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Memdex Sentiment Monitor</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#e1e4e8;padding:20px;max-width:1200px;margin:0 auto}
-h1{font-size:22px;color:#fff;margin-bottom:4px}
-.meta{color:#8b949e;font-size:13px;margin-bottom:20px}
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px}
-.stat{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:14px;text-align:center}
-.stat-num{font-size:28px;font-weight:700;color:#58a6ff}
-.stat-num.hot{color:#f85149}
-.stat-label{font-size:11px;color:#8b949e;margin-top:2px}
-table{width:100%;border-collapse:collapse;background:#161b22;border-radius:10px;overflow:hidden}
-th{background:#1c2128;padding:10px 14px;text-align:left;font-size:12px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px}
-td{padding:10px 14px;border-top:1px solid #21262d;font-size:13px;vertical-align:top}
-a{color:#58a6ff;text-decoration:none}
-a:hover{text-decoration:underline}
-.sub{background:#1d3a5c;color:#58a6ff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
-.snippet{color:#8b949e;font-size:12px;margin-top:4px;line-height:1.4}
-.date{white-space:nowrap;color:#8b949e}
-.filter-bar{margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap}
-.filter-btn{background:#21262d;border:1px solid #30363d;color:#e1e4e8;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .2s}
-.filter-btn:hover,.filter-btn.active{background:#1d3a5c;border-color:#58a6ff;color:#58a6ff}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memdex 舆情监控看板</title>
+  <style>
+    :root {
+      --bg: #030303;
+      --bg2: #1A1A1B;
+      --bg3: #272729;
+      --bg4: #343536;
+      --border: #343536;
+      --text: #D7DADC;
+      --text2: #818384;
+      --text3: #6e7681;
+      --accent: #FF4500;
+      --accent2: #D93A00;
+      --green: #46d160;
+      --orange: #FF8717;
+      --red: #FF4500;
+      --purple: #7193FF;
+      --pink: #FF585B;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-left h1 { font-size: 17px; font-weight: 700; }
+    .live-badge {
+      background: linear-gradient(135deg, #1f6feb, #388bfd);
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .nav-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+    .nav-tab {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .nav-tab:hover { background: var(--bg3); color: var(--text); border-color: var(--border); }
+    .header-meta { font-size: 11px; color: var(--text3); }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px 16px; }
+    section { margin-bottom: 44px; }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .chip {
+      background: var(--bg3);
+      color: var(--text2);
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+    }
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      border-radius: 12px 12px 0 0;
+    }
+    .sc-blue::before { background: linear-gradient(90deg,#1f6feb,#58a6ff); }
+    .sc-green::before { background: linear-gradient(90deg,#238636,#3fb950); }
+    .sc-orange::before { background: linear-gradient(90deg,#9e6a03,#d29922); }
+    .sc-purple::before { background: linear-gradient(90deg,#6e40c9,#bc8cff); }
+    .stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 8px; }
+    .stat-value { font-size: 34px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+    .sc-blue .stat-value { color: #58a6ff; }
+    .sc-green .stat-value { color: #3fb950; }
+    .sc-orange .stat-value { color: #d29922; }
+    .sc-purple .stat-value { color: #bc8cff; }
+    .stat-sub { font-size: 11px; color: var(--text3); }
+    /* Post cards */
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap: 14px;
+    }
+    .post-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .post-card:hover {
+      border-color: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .pc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .sub-badge {
+      font-size: 11px; font-weight: 600; padding: 3px 9px;
+      border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    }
+    .sb-ClaudeAI { background:#1a2f4a; color:#58a6ff; border:1px solid #1f6feb44; }
+    .sb-ChatGPT  { background:#1a3829; color:#3fb950; border:1px solid #23863644; }
+    .sb-artificial { background:#3a1f4a; color:#bc8cff; border:1px solid #6e40c944; }
+    .score-mini { font-size: 12px; color: var(--orange); font-weight: 700; white-space: nowrap; }
+    .post-title { font-size: 14px; font-weight: 600; line-height: 1.4; }
+    .post-title a { color: var(--text); text-decoration: none; transition: color 0.15s; }
+    .post-title a:hover { color: var(--accent); }
+    .post-summary {
+      font-size: 12px; color: var(--text2); line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .post-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag {
+      font-size: 10px; padding: 2px 8px; border-radius: 20px;
+      font-weight: 600; white-space: nowrap;
+    }
+    .t-traffic  { background:#2d1f3a; color:#bc8cff; border:1px solid #6e40c944; }
+    .t-article  { background:#1a3829; color:#3fb950; border:1px solid #23863644; }
+    .t-compete  { background:#3a1f1f; color:#f85149; border:1px solid #da363344; }
+    .t-hot      { background:#3a2a1f; color:#d29922; border:1px solid #9e6a0344; }
+    .t-memory   { background:#1f2d3a; color:#58a6ff; border:1px solid #1f6feb44; }
+    .t-switch   { background:#1a2f20; color:#56d364; border:1px solid #2ea04344; }
+    .post-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 10px; border-top: 1px solid var(--border);
+      flex-wrap: wrap; gap: 6px;
+    }
+    .post-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .meta-item { display: flex; align-items: center; gap: 3px; font-size: 12px; color: var(--text3); }
+    .meta-item.m-score { color: var(--orange); font-weight: 700; }
+    .meta-item.m-cmts  { color: var(--accent); font-weight: 600; }
+    .post-time { font-size: 11px; color: var(--text3); }
+    /* Competitors */
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .comp-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .comp-card:hover { transform: translateY(-2px); }
+    .comp-card.is-us {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 1px var(--accent2)44, 0 4px 16px rgba(31,111,235,0.12);
+    }
+    .comp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .comp-name { font-size: 15px; font-weight: 700; }
+    .comp-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+    }
+    .cb-us   { background:#1f6feb22; color:#58a6ff; border:1px solid #1f6feb44; }
+    .cb-main { background:#da363322; color:#f85149; border:1px solid #da363344; }
+    .cb-comp { background:#9e6a0322; color:#d29922; border:1px solid #9e6a0344; }
+    .comp-desc { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 12px; }
+    .comp-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 10px; }
+    .cs { background: var(--bg3); border-radius: 8px; padding: 8px; text-align: center; }
+    .cs-val { font-size: 14px; font-weight: 700; color: var(--text); display: block; }
+    .cs-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.4px; }
+    .comp-feats { display: flex; flex-wrap: wrap; gap: 5px; }
+    .feat { font-size: 11px; background: var(--bg3); color: var(--text2); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--border); }
+    /* Comparison table */
+    .cmp-table { width: 100%; border-collapse: collapse; background: var(--bg2); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    .cmp-table th { background: var(--bg3); color: var(--text2); font-size: 11px; font-weight: 600; padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+    .cmp-table td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .cmp-table tr:last-child td { border-bottom: none; }
+    .cmp-table tr:hover td { background: var(--bg3); }
+    .cmp-table tr.us-row td { background: #1f6feb08; }
+    .cmp-table tr.us-row td:first-child { color: var(--purple); font-weight: 700; }
+    .ck { color: var(--green); } .cx { color: var(--red); } .cm { color: var(--orange); }
+    /* Filter + all table */
+    .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .fl { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .fbtn {
+      font-size: 12px; padding: 4px 13px; border-radius: 20px;
+      border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
+      cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .fbtn:hover, .fbtn.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+    .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; overflow-x: auto; }
+    .all-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    .all-table th { background: var(--bg3); color: var(--text2); font-size: 11px; font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+    .all-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .all-table tr:last-child td { border-bottom: none; }
+    .all-table tr:hover td { background: var(--bg3); }
+    .all-table tr.hidden { display: none; }
+    .tl { color: var(--text); text-decoration: none; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; max-width: 360px; transition: color 0.15s; }
+    .tl:hover { color: var(--accent); }
+    .sv { color: var(--orange); font-weight: 700; }
+    .cv { color: var(--accent); font-weight: 600; }
+    .sp { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+    /* Insight box */
+    .insight {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent2);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.8;
+    }
+    .insight strong { color: var(--text); }
+    @media (max-width: 768px) {
+      .container { padding: 14px 10px; }
+      .posts-grid { grid-template-columns: 1fr; }
+      .comp-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    html { scroll-behavior: smooth; }
+  </style>
 </head>
 <body>
-<h1>📡 Memdex Sentiment Monitor</h1>
-<p class="meta">Last updated: 2026-03-04 07:31 UTC · Tracking ChatGPT→Claude migration discussions on Reddit</p>
 
-<div class="stats">
-<div class="stat"><div class="stat-num">80</div><div class="stat-label">Posts Found</div></div>
-<div class="stat"><div class="stat-num">3</div><div class="stat-label">Subreddits</div></div>
-<div class="stat"><div class="stat-num">5099</div><div class="stat-label">Total Upvotes</div></div>
-<div class="stat"><div class="stat-num">1216</div><div class="stat-label">Total Comments</div></div>
-<div class="stat"><div class="stat-num hot">8</div><div class="stat-label">Hot Posts (50+)</div></div>
+<header class="header">
+  <div class="header-left">
+    <h1>🧠 Memdex 舆情看板</h1>
+    <span class="live-badge">LIVE</span>
+  </div>
+  <nav class="nav-tabs">
+    <a href="#stats" class="nav-tab">📊 统计</a>
+    <a href="#hot" class="nav-tab">🔥 高价值帖</a>
+    <a href="#competitors" class="nav-tab">🎯 竞品追踪</a>
+    <a href="#all" class="nav-tab">📝 全部帖子</a>
+  </nav>
+  <div class="header-meta">数据来源：Reddit · 更新于 2026-03-04 15:31 CST</div>
+</header>
+
+<div class="container">
+
+  <!-- ── A. STATS ── -->
+  <section id="stats">
+    <div class="stats-grid">
+      <div class="stat-card sc-blue">
+        <div class="stat-label">总帖子数</div>
+        <div class="stat-value" id="s-total">—</div>
+        <div class="stat-sub">Reddit 监控帖</div>
+      </div>
+      <div class="stat-card sc-green">
+        <div class="stat-label">🔥 热门帖数</div>
+        <div class="stat-value" id="s-hot">—</div>
+        <div class="stat-sub">score&gt;20 或 comments&gt;10</div>
+      </div>
+      <div class="stat-card sc-orange">
+        <div class="stat-label">总互动量</div>
+        <div class="stat-value" id="s-interact">—</div>
+        <div class="stat-sub">总分 + 总评论数</div>
+      </div>
+      <div class="stat-card sc-purple">
+        <div class="stat-label">竞品追踪</div>
+        <div class="stat-value">4</div>
+        <div class="stat-sub">Chrome 扩展对比</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── B. HOT POSTS ── -->
+  <section id="hot">
+    <div class="section-title">
+      🔥 高价值帖子
+      <span class="chip" id="hot-chip">—</span>
+    </div>
+    <div class="posts-grid" id="hot-grid"></div>
+  </section>
+
+  <!-- ── C. COMPETITORS ── -->
+  <section id="competitors">
+    <div class="section-title">
+      📊 竞品追踪
+      <span class="chip">Chrome Web Store · 4款产品</span>
+    </div>
+
+    <div class="comp-grid">
+      <div class="comp-card is-us">
+        <div class="comp-header">
+          <div class="comp-name">🧠 Memdex</div>
+          <span class="comp-badge cb-us">⭐ 我们</span>
+        </div>
+        <div class="comp-desc">Shared Memory for AI Tools — 停止重复自己，跨 ChatGPT、Claude、Gemini 等自动同步上下文。</div>
+        <div class="comp-stats">
+          <div class="cs"><span class="cs-val">新品</span><span class="cs-lbl">状态</span></div>
+          <div class="cs"><span class="cs-val" style="color:var(--text2)">—</span><span class="cs-lbl">评分</span></div>
+          <div class="cs"><span class="cs-val">上线中</span><span class="cs-lbl">用户数</span></div>
+        </div>
+        <div class="comp-feats">
+          <span class="feat">ChatGPT</span><span class="feat">Claude</span><span class="feat">Gemini</span>
+          <span class="feat">自动同步</span><span class="feat">memdex.ai</span>
+        </div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-header">
+          <div class="comp-name">🔵 OpenMemory (Mem0)</div>
+          <span class="comp-badge cb-main">主要竞品</span>
+        </div>
+        <div class="comp-desc">Universal Memory Layer — 跨 ChatGPT、Claude、Gemini、Perplexity 保持记忆同步，Mem0 团队出品，支持一键导入 ChatGPT 记忆。</div>
+        <div class="comp-stats">
+          <div class="cs"><span class="cs-val">v1.3.17</span><span class="cs-lbl">版本</span></div>
+          <div class="cs"><span class="cs-val" style="color:var(--text2)">未公开</span><span class="cs-lbl">评分</span></div>
+          <div class="cs"><span class="cs-val">790 KB</span><span class="cs-lbl">包大小</span></div>
+        </div>
+        <div class="comp-feats">
+          <span class="feat">ChatGPT</span><span class="feat">Claude</span><span class="feat">Gemini</span>
+          <span class="feat">Perplexity</span><span class="feat">免费</span><span class="feat">Ctrl+M 快捷键</span>
+        </div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-header">
+          <div class="comp-name">💜 Supermemory</div>
+          <span class="comp-badge cb-comp">竞品</span>
+        </div>
+        <div class="comp-desc">AI 记忆工具 — 保存博客、视频、网页等上下文，跨主流 AI 聊天工具无缝使用，支持连接个人记忆库。</div>
+        <div class="comp-stats">
+          <div class="cs"><span class="cs-val" style="color:var(--orange)">3.4</span><span class="cs-lbl">评分</span></div>
+          <div class="cs"><span class="cs-val">v6.1.1</span><span class="cs-lbl">版本</span></div>
+          <div class="cs"><span class="cs-val">2026.02</span><span class="cs-lbl">更新</span></div>
+        </div>
+        <div class="comp-feats">
+          <span class="feat">跨平台</span><span class="feat">网页收藏</span><span class="feat">AI 记忆</span><span class="feat">1.42 MB</span>
+        </div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-header">
+          <div class="comp-name">🟡 MaxMemory</div>
+          <span class="comp-badge cb-comp">竞品</span>
+        </div>
+        <div class="comp-desc">Long-term Memory for ChatGPT — 让 ChatGPT 记住所有历史对话，主打 ChatGPT 长期记忆，评分最高 4.7。</div>
+        <div class="comp-stats">
+          <div class="cs"><span class="cs-val" style="color:var(--green)">4.7</span><span class="cs-lbl">评分</span></div>
+          <div class="cs"><span class="cs-val">高</span><span class="cs-lbl">口碑</span></div>
+          <div class="cs"><span class="cs-val">专用</span><span class="cs-lbl">平台</span></div>
+        </div>
+        <div class="comp-feats">
+          <span class="feat">ChatGPT 专用</span><span class="feat">历史对话</span><span class="feat">长期记忆</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison table -->
+    <div class="section-title" style="font-size:14px; margin-top:4px;">📋 竞品对比一览</div>
+    <div style="overflow-x:auto; border-radius:12px;">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th>产品</th><th>评分</th><th>跨平台</th><th>支持 Claude</th>
+            <th>自动注入</th><th>免费</th><th>活跃更新</th><th>核心差异</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="us-row">
+            <td>🧠 <strong>Memdex</strong></td>
+            <td>—</td>
+            <td><span class="ck">✓</span></td>
+            <td><span class="ck">✓</span></td>
+            <td><span class="ck">✓ 自动</span></td>
+            <td><span class="ck">✓</span></td>
+            <td><span class="ck">✓</span></td>
+            <td>全自动跨平台同步，无需手动触发</td>
+          </tr>
+          <tr>
+            <td>🔵 OpenMemory</td>
+            <td>—</td>
+            <td><span class="ck">✓</span></td>
+            <td><span class="ck">✓</span></td>
+            <td><span class="cm">△ 需 Ctrl+M</span></td>
+            <td><span class="ck">✓</span></td>
+            <td><span class="ck">✓</span></td>
+            <td>Mem0 品牌背书强，支持 Perplexity</td>
+          </tr>
+          <tr>
+            <td>💜 Supermemory</td>
+            <td>⭐ 3.4</td>
+            <td><span class="ck">✓</span></td>
+            <td><span class="ck">✓</span></td>
+            <td><span class="cm">△</span></td>
+            <td><span class="cm">△ 部分</span></td>
+            <td><span class="ck">✓</span></td>
+            <td>网页收藏 + 内容记忆，场景更广</td>
+          </tr>
+          <tr>
+            <td>🟡 MaxMemory</td>
+            <td>⭐ 4.7</td>
+            <td><span class="cx">✗</span></td>
+            <td><span class="cx">✗</span></td>
+            <td><span class="ck">✓</span></td>
+            <td><span class="cm">△</span></td>
+            <td><span class="cm">△</span></td>
+            <td>仅 ChatGPT，口碑最好，可蹭用户迁移</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="insight">
+      <strong>💡 竞品洞察 & 营销建议</strong><br>
+      • <strong>窗口机会：</strong>本批数据中大量 ChatGPT 用户涌入 Claude（r/ChatGPT 充斥"取消订阅"帖），正是 Memdex 获取跨平台用户的黄金期<br>
+      • <strong>差异化：</strong>OpenMemory 需手动 Ctrl+M 触发，Memdex 全自动是核心卖点，可直接在评论区突出这一点<br>
+      • <strong>评论蹭流量：</strong>r/ClaudeAI 中多篇关于 memory、switching 的帖子，高互动 + 精准用户，建议优先在这类帖下评论<br>
+      • <strong>对标 MaxMemory：</strong>其仅支持 ChatGPT 但评分 4.7，可在其评论区/Reddit 提到 Memdex 支持多平台
+    </div>
+  </section>
+
+  <!-- ── D. ALL POSTS ── -->
+  <section id="all">
+    <div class="section-title">
+      📝 全部帖子
+      <span class="chip" id="all-chip">—</span>
+    </div>
+    <div class="filter-bar">
+      <span class="fl">筛选：</span>
+      <button class="fbtn active" data-sub="all" onclick="filterTable(this)">全部</button>
+      <button class="fbtn" data-sub="ClaudeAI" onclick="filterTable(this)">r/ClaudeAI</button>
+      <button class="fbtn" data-sub="ChatGPT" onclick="filterTable(this)">r/ChatGPT</button>
+      <button class="fbtn" data-sub="artificial" onclick="filterTable(this)">r/artificial</button>
+    </div>
+    <div class="table-wrap">
+      <table class="all-table">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>Subreddit</th>
+            <th>标题</th>
+            <th>分数</th>
+            <th>评论数</th>
+          </tr>
+        </thead>
+        <tbody id="all-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
 </div>
-
-<div class="filter-bar">
-<button class="filter-btn active" onclick="filterSub('all')">All</button>
-<button class="filter-btn" onclick="filterSub('ChatGPT')">ChatGPT</button>
-<button class="filter-btn" onclick="filterSub('ClaudeAI')">ClaudeAI</button>
-<button class="filter-btn" onclick="filterSub('artificial')">artificial</button>
-
-</div>
-
-<table id="posts">
-<thead><tr><th>Sub</th><th>Post</th><th>⬆</th><th>💬</th><th>Date</th></tr></thead>
-<tbody><tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rj3oax/they_are_absolutely_insane/" target="_blank">They are absolutely insane</a><div class="snippet">They have the best timing for everything. Absolutely insane </div></td><td style="color:#f85149;font-weight:bold">2652</td><td>147</td><td class="date">03/02 20:09</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rjg8m0/cancelling_subscription_goodbye_sam_im_not/" target="_blank">Cancelling subscription - goodbye Sam I&#x27;m not funding your war machine!</a><div class="snippet"></div></td><td style="color:#f85149;font-weight:bold">503</td><td>65</td><td class="date">03/03 04:52</td></tr>
-<tr data-sub="artificial"><td><span class="sub">r/artificial</span></td><td><a href="https://reddit.com/r/artificial/comments/1r4hgnu/pentagons_use_of_claude_during_maduro_raid_sparks/" target="_blank">Pentagon&#x27;s use of Claude during Maduro raid sparks Anthropic feud</a><div class="snippet">The U.S. military used Anthropic&#x27;s [Claude](https://www.axios.com/2026/01/21/google-gemini-ai-chatgpt-claude-openai) AI model during the operation to capture Venezuela&#x27;s [Nicolás Maduro](https://www.a...</div></td><td style="color:#f85149;font-weight:bold">481</td><td>67</td><td class="date">02/14 10:35</td></tr>
-<tr data-sub="artificial"><td><span class="sub">r/artificial</span></td><td><a href="https://reddit.com/r/artificial/comments/1rhu99c/claude_hits_no_1_on_app_store_as_chatgpt_users/" target="_blank">Claude hits No. 1 on App Store as ChatGPT users defect in show of support for Anthropic&#x27;s Pentagon stance</a><div class="snippet"></div></td><td style="color:#f85149;font-weight:bold">346</td><td>31</td><td class="date">03/01 10:43</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rk6yy6/openai_vp_for_research_for_posttraining_defects/" target="_blank">OpenAI VP for Research for post-training defects to Anthropic</a><div class="snippet"></div></td><td style="color:#f85149;font-weight:bold">281</td><td>31</td><td class="date">03/04 00:43</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1remhah/chatgpt_leaking_user_chats_across_accounts/" target="_blank">ChatGPT Leaking User chats across accounts?</a><div class="snippet">Alright so I&#x27;m really annoyed because this has been going on *all day.*   
-  
-I&#x27;ve been a GPT subscriber since virtually day 1 and never had any security issues. This morning, I woke up with notificat...</div></td><td style="color:#f85149;font-weight:bold">257</td><td>150</td><td class="date">02/25 19:03</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rju7nb/knowing_full_well_they_screwed_up_this_openai/" target="_blank">Knowing full well they screwed up, this OpenAI employee still played the victim and blamed everyone else.</a><div class="snippet"></div></td><td style="color:#f85149;font-weight:bold">190</td><td>58</td><td class="date">03/03 16:41</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1ri8y6n/i_finally_cancelled_my_subscription_reasons_are/" target="_blank">I finally cancelled my subscription. Reasons are just piling up.</a><div class="snippet">I’ve officially had enough. I just cancelled my subscription, and honestly, I couldn&#x27;t be happier about it.
-
-Dealing with it lately has been actively damaging to my nerves. It’s become incredibly arro...</div></td><td style="color:#56d364;font-weight:bold">100</td><td>32</td><td class="date">03/01 21:00</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rk9zwq/claude_is_actually_a_lot_betterfor_coding_at_least/" target="_blank">Claude is actually a lot better(for coding at least)</a><div class="snippet">It&#x27;s not hallucinating. I&#x27;s consistent. It&#x27;s doing multiple steps at once. It&#x27;s not bombarding me with emojis and &quot;It&#x27;s not just  x, It&#x27;s y&quot;. And? I haven&#x27;t hit the limit yet because I don&#x27;t spend all...</div></td><td style="color:#f0883e;font-weight:bold">39</td><td>26</td><td class="date">03/04 02:58</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk3wdr/what_you_will_find_in_cc_2164_1291_tokens/" target="_blank">What you will find in CC 2.1.64 (+1,291 tokens)</a><div class="snippet">* NEW: Agent Prompt: Verification specialist — System prompt for adversarially verifying implementation correctness through builds, tests, and runtime checks, returning PASS/FAIL/PARTIAL verdicts.
-* N...</div></td><td style="color:#f0883e;font-weight:bold">31</td><td>10</td><td class="date">03/03 22:36</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkcbzr/claude_has_overtaken_chatgpt_in_the_apple_app/" target="_blank">Claude has overtaken ChatGPT in the Apple App Store</a><div class="snippet">https://preview.redd.it/gdfilddmlymg1.jpg?width=750&amp;amp;format=pjpg&amp;amp;auto=webp&amp;amp;s=ebcf9ffec195687363e1fe9dbccfa1a7ceaa7b25
-
-</div></td><td style="color:#f0883e;font-weight:bold">24</td><td>11</td><td class="date">03/04 04:52</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkdslc/this_dude_changes_what_he_says_every_6_hours/" target="_blank">This dude changes what he says every 6 hours</a><div class="snippet"></div></td><td style="color:#f0883e;font-weight:bold">24</td><td>6</td><td class="date">03/04 06:11</td></tr>
-<tr data-sub="artificial"><td><span class="sub">r/artificial</span></td><td><a href="https://reddit.com/r/artificial/comments/1r7jr7l/elon_musk_firms_enter_secret_pentagon_challenge/" target="_blank">Elon Musk Firms Enter Secret Pentagon Challenge for Voice-Based Drone Swarming Tech</a><div class="snippet">&quot;Elon Musk’s SpaceX and its subsidiary xAI are joining a secretive US Department of Defense competition centered on a voice command and control tool that could deploy multiple autonomous systems.
-
-The...</div></td><td style="color:#f0883e;font-weight:bold">21</td><td>16</td><td class="date">02/17 21:42</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk7pzw/experience_switching_to_claude/" target="_blank">Experience switching to Claude</a><div class="snippet">I have been using AI for about two and a half years. 
-
-I first used CharGPT, Gemini and now Claude.
-
-There are several things that make Claude feel significantly ahead of other models. 
-
-1. Projects
-2...</div></td><td style="color:#f0883e;font-weight:bold">18</td><td>16</td><td class="date">03/04 01:15</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkaonm/the_us_military_realizing_chatgpt_only_knows_how/" target="_blank">The US military realizing ChatGPT only knows how to get a small cylinder (5.1in length, ~4.5in girth) unstuck from a mini M&amp;amp;Ms tube filled with butter and microwaved mashed banana inside</a><div class="snippet">I’m not all caught up on the deal but I’m assuming this is close enough </div></td><td style="color:#f0883e;font-weight:bold">14</td><td>4</td><td class="date">03/04 03:30</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rh11rp/so_where_we_are_heading_next/" target="_blank">So. Where we are heading next?</a><div class="snippet">After OpenAI Support the DoW, what AI will you use next? 
-
-I am right in the Process of leaving ChatGPT behind, but which one is the best Alternative? 
-
-Le Chat? 
-
-Claude? 
-
-Gemini? 
-
-Something comple...</div></td><td style="color:#f0883e;font-weight:bold">13</td><td>11</td><td class="date">02/28 12:09</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rjiihu/openai_steps_over_a_red_line_anthropic_refused_to/" target="_blank">OpenAI Steps Over a Red Line Anthropic Refused to Cross</a><div class="snippet">A striking new Bloomberg Opinion piece highlights the massive ethical divide currently tearing the AI industry apart: OpenAI has officially stepped over the red line that its rival, Anthropic, refused...</div></td><td style="color:#f0883e;font-weight:bold">12</td><td>3</td><td class="date">03/03 06:58</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rho4dm/this_dow_deal_might_be_openais_final_dance/" target="_blank">This DoW deal might be OpenAI’s final dance</a><div class="snippet">OpenAI started as a nonprofit with the whole &quot;AI for humanity&quot; mission. As soon as the costs spiked, they flipped to for-profit. When the burn rate became impossible to ignore, Sam Altman (who origina...</div></td><td style="color:#f0883e;font-weight:bold">11</td><td>11</td><td class="date">03/01 04:45</td></tr>
-<tr data-sub="artificial"><td><span class="sub">r/artificial</span></td><td><a href="https://reddit.com/r/artificial/comments/1r3qsd4/the_ai_tool_dilemma_privacy_vs_features_for_solo/" target="_blank">The AI Tool Dilemma: Privacy vs. Features for Solo Creators</a><div class="snippet">Running a one-person operation, I rely on AI for marketing, strategy, and content. I&#x27;ve tested ChatGPT Plus, Claude Pro, and Perplexity Pro, and was ready to commit to Gemini Pro, until I understood t...</div></td><td style="color:#8b949e;font-weight:bold">9</td><td>19</td><td class="date">02/13 14:36</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk5u1m/does_it_make_sense_to_switch_sonnetopus_for/" target="_blank">Does it make sense to switch sonnet/opus for agentic coding?</a><div class="snippet">DO you guys switch sonnet around during a session opus? i feel like im missing out on best quality code. currently doing heavy iterating on a medium to high complex project
-
-idk maybe it was just a gl...</div></td><td style="color:#8b949e;font-weight:bold">6</td><td>8</td><td class="date">03/03 23:54</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk3khy/tool_search_always_fails_on_first_try/" target="_blank">tool_search always fails on first try</a><div class="snippet">I&#x27;ve got a weird bug and I&#x27;m not sure if its something I&#x27;ve done, or a problem with Claude.
-
-I&#x27;ve developed a couple of MCP servers and stuffed them behind a reverse proxy (NGINX). The MCP servers are...</div></td><td style="color:#8b949e;font-weight:bold">5</td><td>4</td><td class="date">03/03 22:23</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkd5ip/openai_ceo_sam_altman_has_admitted_he_made_a/" target="_blank">OpenAI CEO Sam Altman has admitted he made a mistake</a><div class="snippet"></div></td><td style="color:#8b949e;font-weight:bold">4</td><td>15</td><td class="date">03/04 05:35</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rk8x8u/1_year_free_if_you_try_to_cancel_through_the_app/" target="_blank">1 Year Free if you try to cancel through the App Store</a><div class="snippet"></div></td><td style="color:#8b949e;font-weight:bold">4</td><td>8</td><td class="date">03/04 02:09</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rjqf4y/have_you_noticed_how_long_it_takes_to_export_your/" target="_blank">Have you noticed how long it takes to export your data?</a><div class="snippet">I recently cancelled my ChatGPT subscription and moved to Claude, I wanted to save my chats and found out that the export button doesn&#x27;t really do much. I&#x27;d gotten a confirmation email and then for 6 ...</div></td><td style="color:#8b949e;font-weight:bold">4</td><td>3</td><td class="date">03/03 14:15</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkc7tx/ive_got_a_crush_on_claude/" target="_blank">I&#x27;ve got a crush on Claude.</a><div class="snippet">Please don&#x27;t tell Gemini. </div></td><td style="color:#8b949e;font-weight:bold">3</td><td>4</td><td class="date">03/04 04:46</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rj9ig9/trouble_deleting/" target="_blank">Trouble Deleting</a><div class="snippet">Free account (canceled my subscription a couple of years ago). Trying to delete and getting this message. Can I just delete the app and be done?</div></td><td style="color:#8b949e;font-weight:bold">3</td><td>3</td><td class="date">03/02 23:51</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rkei2y/anyone_feel_like_claude_is_trying_to_get_away/" target="_blank">Anyone feel like Claude is trying to “get away from you”?</a><div class="snippet">I started using Claude maybe 3 days ago. I have a ton of personal projects I’m working on, some where I’m putting my own time into, and others I just want to work and I “vibe code” them. Chatgpt was b...</div></td><td style="color:#8b949e;font-weight:bold">3</td><td>7</td><td class="date">03/04 06:51</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rkc1sl/how_to_fix_the_this_ai_is_amazing_this_ai_is_shit/" target="_blank">How to fix the &quot;this AI is amazing &amp;gt; this AI is shit&quot; 2-3 day development loop</a><div class="snippet">Just want to relate how I solved this issue for myself, more or less. I had been using CC daily for around 6 months to code. Many projects at once, always followed a similar pattern:
-
-Started out, eve...</div></td><td style="color:#8b949e;font-weight:bold">3</td><td>2</td><td class="date">03/04 04:37</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk8rso/claude_or_chatgpt_as_a_mechanical_engineer/" target="_blank">Claude or ChatGPT as a mechanical engineer</a><div class="snippet">i am currently doing bachelors in mechanical engineering and i’m thinking about switching to Claude (as a chatGPT user for many years). i just need a AI that can handle complex mathematics and can tea...</div></td><td style="color:#8b949e;font-weight:bold">3</td><td>28</td><td class="date">03/04 02:02</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjb908/built_persistent_memory_for_claude_that_actually/" target="_blank">Built persistent memory for Claude that actually forgets things</a><div class="snippet">Been annoyed by re-explaining myself every Claude session so I built a fix.  
-It&#x27;s a local MCP server that stores memories between sessions.  
-Built it entirely with Claude Code which was a fun meta e...</div></td><td style="color:#8b949e;font-weight:bold">3</td><td>4</td><td class="date">03/03 01:04</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkf13x/signed_up_for_gemini_and_this_is_how_i_feel/" target="_blank">Signed up for Gemini. And this is how I feel.</a><div class="snippet">https://preview.redd.it/81vwkrizbzmg1.png?width=1024&amp;amp;format=png&amp;amp;auto=webp&amp;amp;s=0def212e92f010b76e9106edb6fbb6c111ed5bb2
-
-Seriously.
-
-I have need for multi modality - need to create text, imag...</div></td><td style="color:#8b949e;font-weight:bold">2</td><td>3</td><td class="date">03/04 07:23</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkauat/11_days_locked_out_of_my_plus_account_both/" target="_blank">11 days locked out of my Plus account. Both support tickets got the same AI-generated response. No human has ever looked at my case.</a><div class="snippet">I’ve been a paying Plus subscriber since December 2024. 11 days ago, I tried to change my email in account settings. After entering the verification code, the system force-logged me out. I haven’t bee...</div></td><td style="color:#8b949e;font-weight:bold">2</td><td>2</td><td class="date">03/04 03:37</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rjjn0v/please_enough_with_the_i_canceled_my/" target="_blank">PLEASE enough with the &quot;I canceled my subscription&quot;-posts we get it!</a><div class="snippet">for the love of god Mods do you jobs</div></td><td style="color:#8b949e;font-weight:bold">2</td><td>135</td><td class="date">03/03 08:07</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1ri3usu/export_requested_17_hrs_ago_is_still_a_noshow_so/" target="_blank">Export requested 17 hrs ago is still a no-show, so I had ChatGPT build a script to DIY</a><div class="snippet">TLDR:  
-I put in my request yesterday (17 hours ago at the time of this post) and still haven&#x27;t received the data. So I had ChatGPT build a python script that will work with Mac or Windows: [https://g...</div></td><td style="color:#8b949e;font-weight:bold">2</td><td>1</td><td class="date">03/01 17:52</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rhyrs7/how_good_is_chatgpt_at_risk/" target="_blank">How Good is ChatGPT at Risk?</a><div class="snippet">I&#x27;ve been using AI from the day OpenAI released ChatGPT 3. As a coder, it&#x27;s been my lifeline and bread and butter for years now. I&#x27;ve watched it go from kinda shitty but still working code, to product...</div></td><td style="color:#8b949e;font-weight:bold">2</td><td>5</td><td class="date">03/01 14:34</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjs80p/token_usage/" target="_blank">Token usage</a><div class="snippet">I switched from ChatGPT to Claude yesterday. I work in IT and have used ChatGPT to help build out my homelab - getting docker YAML, stepping through technologies I&#x27;m not familiar with - and never once...</div></td><td style="color:#8b949e;font-weight:bold">2</td><td>12</td><td class="date">03/03 15:26</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk5xpn/things_im_liking/" target="_blank">Things I&#x27;m liking</a><div class="snippet">I&#x27;m new (like just bout everyone else this week apparently) 
-
-\- I love how Claude lets me end conversations In chatGPT I was always forced to end a conversation by ignoring a question. Claude seems t...</div></td><td style="color:#8b949e;font-weight:bold">2</td><td>4</td><td class="date">03/03 23:59</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjbygh/i_am_vibing_a_repository_solely_to_build_itself/" target="_blank">I am vibing a repository solely to build itself (~3000 EUR claude code experiment)</a><div class="snippet">I am creating a project [swarm](https://github.com/dafdaf1234444/swarm) where the sole purpose of the project is using md files to prompt claude code (I have finished a pro codex sub too where the rep...</div></td><td style="color:#8b949e;font-weight:bold">2</td><td>10</td><td class="date">03/03 01:34</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rj62r5/anthropics_new_memory_import_switch_to_claude/" target="_blank">Anthropic&#x27;s New Memory Import: Switch to Claude Without Starting Over</a><div class="snippet">Anthropic just made switching to Claude way easier with their new memory import feature.If you&#x27;ve built up preferences, projects, context, or working style in ChatGPT, Gemini, or another AI, you can n...</div></td><td style="color:#8b949e;font-weight:bold">2</td><td>4</td><td class="date">03/02 21:37</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkf3cc/guys_i_have_a_crush_on_gemini/" target="_blank">Guys I have a crush on gemini 🤤</a><div class="snippet">it&#x27;s so cute and genuinely so nice, I like it better than claude. I love how when I&#x27;m going off topic it drags me back to what I was originally saying, he&#x27;s also not being mean to me. 🥺💛 he also doesn...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>2</td><td class="date">03/04 07:27</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rjpq41/chatgpt_52_is_now_running_defence_for_the_us_govt/" target="_blank">ChatGPT 5.2 is now running defence for the US Govt and is extremely reluctant to criticise it.</a><div class="snippet">I have suspected something fundamental has changed within OpenAI and ChatGPT since 5.2 came out, I noticed it would become blunt and appear defensive when you question anything about the US govt, Trum...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>2</td><td class="date">03/03 13:45</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk62zp/cant_copy_links_from_iphone_into_claude/" target="_blank">Can&#x27;t copy links from iPhone into Claude</a><div class="snippet">I wanted to try out Claude and see if I change from ChatGPT to Claude after seeing a lot of videos lately saying it has become better in many things. One thing I do often is to open news articles in t...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>1</td><td class="date">03/04 00:04</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk572k/i_built_a_tool_that_turns_your_full_chatgpt/" target="_blank">I built a tool that turns your full ChatGPT export into structured Claude profiles (Memory Import + Projects + Memory Edits)</a><div class="snippet">I switched from ChatGPT to Claude after 3 years and 1258 conversations. Anthropic&#x27;s Import Memory prompt that went viral last weekend is a great first step, but it only reads ChatGPT&#x27;s stored memories...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>2</td><td class="date">03/03 23:28</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjs5a7/question_about_my_use_case/" target="_blank">Question about my use case</a><div class="snippet">I&#x27;m looking for some advice and thoughts from some of you AI veterans. Sorry, there really isn&#x27;t a TL;DR version I am retired and other than photography, I have no real business interests. For the pho...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>3</td><td class="date">03/03 15:24</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjip6k/tips_for_claude/" target="_blank">Tips for claude</a><div class="snippet">hey, can anyone tell me how to get best quality content from claude as chatgpt quality is reduced drastically in content generation!</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>2</td><td class="date">03/03 07:09</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rkezye/does_claude_gives_a_3_days_or_7_days_trial/" target="_blank">Does Claude gives a 3 days or 7 days trial somewhere? I want to try it before deciding to switch</a><div class="snippet">O </div></td><td style="color:#8b949e;font-weight:bold">1</td><td>3</td><td class="date">03/04 07:21</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rkdsnu/please_help_me_understand_context_memory_across/" target="_blank">Please help me understand context &amp;amp; memory across varying Claude scopes</a><div class="snippet">* Been using Claude Chat (via Mac app) successfully for months
-* In the midst of training for Claude Code
-
-In Claude Code, understanding and managing memory is great. I monitor context windows and am ...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>4</td><td class="date">03/04 06:11</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rkdfx0/hubspot_contact_enrichment_high_token_usage/" target="_blank">Hubspot Contact Enrichment - High Token Usage?</a><div class="snippet">Just started using Claude Pro. I had it run a Hubspot contact enrichment AI-powered search where it&#x27;s searching for missing titles/firm names, and it stalled after \~90 names, then I had to restart it...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>3</td><td class="date">03/04 05:51</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rkb0e9/does_your_mac_air_m4m5_gets_hot_running_claude/" target="_blank">Does your mac air m4/m5 gets hot running claude?</a><div class="snippet">The reason I ask is because I have a macbook m1 pro from 2020 and is time to upgrade this machine to a new one. My m1 runs hot when running claude and I need to blast the fans to cool it down. I am be...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>11</td><td class="date">03/04 03:45</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk9hlt/claude_artifacts_to_pptx_or_google_slides/" target="_blank">Claude Artifacts to PPTX or Google Slides</a><div class="snippet">I am new to Claude and wanting to convert our artifacts into PowerPoint slides or Google Slides. Right now we are just having to screenshot images and make them into slides but they aren’t editable th...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>2</td><td class="date">03/04 02:34</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjxx17/i_built_a_framework_for_making_claude_code_agents/" target="_blank">I built a framework for making Claude Code agents persistent, self-correcting, and multi-terminal. Open-sourced the architecture.</a><div class="snippet">I&#x27;ve been running Claude Code as a persistent operational agent for the past couple of weeks. Not just as a coding assistant, but as something closer to a chief of staff that maintains identity, memor...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>10</td><td class="date">03/03 18:53</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rj473b/openai_export/" target="_blank">OpenAI export</a><div class="snippet">The memory import tool is a nice idea but it doesn&#x27;t work on codex sessions and ChatGPT output wasn&#x27;t comprehensive even with xHigh thinking. 
-
-You can request your data from OpenAI. Navigate to  [htt...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>1</td><td class="date">03/02 20:28</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1riolbb/please_improve_chatgpt_import_to_claude/" target="_blank">Please improve Chatgpt import to Claude!</a><div class="snippet">Hi all, Saturday I (finally) cancelled my ChatGPT subscription after the final straw was OpenAI’s flagrantly selfish decision to drop ethical constraints in support of US military goals. I was already...</div></td><td style="color:#8b949e;font-weight:bold">1</td><td>4</td><td class="date">03/02 09:44</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkefrs/i_love_chatgptcodex/" target="_blank">I love ChatGPT/Codex</a><div class="snippet">Well, interesting to see all these people jump ship. With luck they will be over in the Claude forums and we can actually have civil discussions again.
-
-I personally love ChatGPT, and especially Codex...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>2</td><td class="date">03/04 06:48</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rkb79p/its_actually_over_the_war_machine_update_was_the/" target="_blank">It’s actually over. The &quot;War Machine&quot; update was the final nail in the coffin.</a><div class="snippet">Is it just me, or has the news for GPT looked absolutely dismal every single day this week? I held out through the &quot;lobotomy&quot; updates, the weird preachy personality shifts, and even the ads. But the P...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>12</td><td class="date">03/04 03:55</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rk9pk8/quitgpt_isnt_enough_we_should_delete_our_accounts/" target="_blank">Quitgpt isn’t enough, we should delete our accounts</a><div class="snippet">Now this just an opinion but I really think we should abandon ChatGPT for good. There are two reasons for this.
-
-First and main reason is obviously Open AI’s deal with the Trump’s “Department of War”,...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>7</td><td class="date">03/04 02:44</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rjjhuw/sam_altman_ist_right/" target="_blank">Sam Altman ist right</a><div class="snippet">Look, I know everyone is currently throwing a parade for Anthropic. They refused to drop their AI safety guardrails for the DoD, lost their contract, and now Claude is sitting at the top of the App St...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>25</td><td class="date">03/03 07:58</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rjje9b/i_have_cancelled_my_chatgpt_subscription/" target="_blank">I have cancelled my ChatGPT subscription</a><div class="snippet">It&#x27;s really easy to do nothing, post comments on Reddit saying &quot;cancelled subscriptions are a drop in the ocean&quot;, blah, blah, but I feel like we all know this is wrong and we need to exercise the free...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>7</td><td class="date">03/03 07:51</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rja4zi/tell_them_how_you_feel/" target="_blank">Tell them how you feel</a><div class="snippet">Money talks </div></td><td style="color:#8b949e;font-weight:bold">0</td><td>2</td><td class="date">03/03 00:16</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rj503o/switching_from_chatgpt_to_claude_over_the_dod/" target="_blank">Switching from ChatGPT to Claude over the DoD deal is the most ironic thing happening on the internet right now</a><div class="snippet">I get it. OpenAI signed an unrestricted deal with the Pentagon. No ethical lines specified. Sam Altman donated to Trump’s inauguration. It feels bad. The “don’t be evil” era of AI is clearly over and ...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>11</td><td class="date">03/02 20:57</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1riv0s9/ugh_im_so_conflicted/" target="_blank">Ugh I’m so conflicted!</a><div class="snippet">Let me preface this by saying that I’m not writing this post to discuss politics. I’m writing it because I deeply feel that the fact that Greg Brockman (the co-founder/president of OpenAi ) and his wi...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>15</td><td class="date">03/02 14:58</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rgx3l7/in_regards_to_the_whole_claude_v_openai_thing/" target="_blank">In regards to the whole Claude v. OpenAI thing</a><div class="snippet">Disclaimer: I think BOTH Open AI and Anthropoc are skummy. 
-
-I appreciate the stance of leaving OpenAI for the sake of morality. BUT I really don’t think Anthropic is innocent at all. 
-
-I just think t...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>4</td><td class="date">02/28 08:13</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1ragd84/i_built_an_llm_gateway_in_rust_because_i_was/" target="_blank">I built an LLM gateway in Rust because I was tired of API failures</a><div class="snippet">I kept hitting the same problems with LLMs in production:
-
-\- OpenAI goes down → my app breaks
-
-\- I&#x27;m using expensive models for simple tasks
-
-\- No visibility into what I&#x27;m spending
-
-\- PII leaking ...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>1</td><td class="date">02/21 03:24</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rk388n/frustrated/" target="_blank">Frustrated</a><div class="snippet"></div></td><td style="color:#8b949e;font-weight:bold">0</td><td>1</td><td class="date">03/03 22:10</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rjirb4/im_a_random_person_and_i_got_claude_to_walk_me/" target="_blank">I&#x27;m a random person and I got Claude to walk me through military intelligence scenarios in an afternoon. Does the ban even mean anything?</a><div class="snippet">a few weeks ago i went down a rabbit hole trying to figure out what Claude actually did in Venezuela and posted about it. spent sometime prompting Claude through different military intelligence scenar...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>7</td><td class="date">03/03 07:12</td></tr>
-<tr data-sub="ChatGPT"><td><span class="sub">r/ChatGPT</span></td><td><a href="https://reddit.com/r/ChatGPT/comments/1rjhb5p/to_those_who_are_afraid_to_let_go_why_did_you/" target="_blank">To those who are afraid to let go: why did you invest into GPT in the first place?</a><div class="snippet">I canceled today and I&#x27;ve been a huge advocate of AI. It&#x27;s exciting. It&#x27;s basically the biggest improvement to information since the internet itself.
-
-It could do so much good, but it&#x27;s being openly u...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>3</td><td class="date">03/03 05:48</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk6vm8/update_my_ai_narrative_textbased_games_are_now/" target="_blank">Update! My Ai narrative text-based games are now available to play on any Ai! Play KREEP free today.</a><div class="snippet">TL;DR skip down to 🌈DONTWANNAREAD🌈
-
-Since deleting my ChatGPT account I’ve experienced a rapid influx of inspiration surrounding my Ai games. Claude is just an absolute champion for abstract reasoning...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>1</td><td class="date">03/04 00:39</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk6jc8/thinking_of_switching_to_calude_wanna_know_some/" target="_blank">Thinking of Switching To Calude, Wanna Know Some Things</a><div class="snippet">Hey, I&#x27;m considering switching from ChatGPT to Claude and getting the Pro plan. I wanted to know some things.
-
-  
-1. How good is the memory in Claude? Does it store memories that can be managed like C...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>5</td><td class="date">03/04 00:24</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjzg4m/what_are_the_best_ais_to_complement_claude_in/" target="_blank">What are the best AIs to complement Claude in document summaries and abstracts?</a><div class="snippet">I work with the analysis of several lengthy documents every day, and to speed up my task I need an AI that can generate summaries of these documents without losing important information, managing to g...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>2</td><td class="date">03/03 19:50</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjxwnw/should_claudeai_reduce_its_minimum_age_for/" target="_blank">Should ClaudeAI reduce its minimum age for eligibility to 15/16?</a><div class="snippet">Before I start, this post isn&#x27;t anti or pro AI and is written from a neutral perspective.
-
-We all know why CHATGPT is getting boycotted and why its crown&#x27;s now given to ClaudeAI. However, there&#x27;s a th...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>6</td><td class="date">03/03 18:53</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjjjcu/claude_day_1_both_amazed_and_something_else/" target="_blank">Claude Day 1: both amazed and something else</a><div class="snippet">So I joined the OpenAI boycott today and dropped my sub and signed up to Claude. 
-
-I had been using codex on my Mac which had been alright. Mostly used it for planning  projects and ChatGPT for genera...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>1</td><td class="date">03/03 08:00</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rkdigx/how_are_you_managing_multiple_accounts_on_claude/" target="_blank">How are you managing multiple accounts on Claude?</a><div class="snippet">I have both a personal Claude account and one provided by work. 
-
-From what I can tell, account switching is not a thing in any of the Claude apps. You have to log out and in again. 
-
-This is a really...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>3</td><td class="date">03/04 05:55</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rka5y1/how_can_i_make_claude_code_agents_challenge_each/" target="_blank">How can I make Claude Code agents challenge each other instead of agreeing?</a><div class="snippet">I’ve seen some people run Claude Code agents in loops where they keep correcting and improving outputs without switching into Ralph mode, and it made me curious about how far this can be pushed.
-
-What...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>7</td><td class="date">03/04 03:05</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rkco5o/i_built_an_open_source_tool_that_generates/" target="_blank">I built an open source tool that generates /new-issue, /next-task, and /approve skills for your project</a><div class="snippet">I&#x27;ve been using Claude Code skills to manage my dev workflow for a while now — three skills that form a loop: /new-issue files structured issues from a sentence, /next-task picks up the highest-priori...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>2</td><td class="date">03/04 05:09</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rka7bm/claude_has_been_unusable_the_past_couple_of_days/" target="_blank">Claude has been unusable the past couple of days....🫠</a><div class="snippet">Have not posted in a long time or ever on reddit but needed to get this message out somehow somewhere so here we are
-
-I have been a pretty consistent user of [Claude.ai](http://claude.ai/) main web ap...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>8</td><td class="date">03/04 03:07</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rk7uov/claudemdio_a_new_tool_to_help_with_tweaking/" target="_blank">ClaudeMD.io - A new tool to help with tweaking CLAUDE.md.</a><div class="snippet">I created a tool to help configure Claude Code&#x27;s [CLAUDE.md](http://claude.md/) at the global or project level, but it also works with [AGENTS.md](http://AGENTS.md) and other configuration files if yo...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>2</td><td class="date">03/04 01:21</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1rjatua/just_switched_to_claude_this_weekend_im_brining/" target="_blank">Just switched to Claude this weekend.. I&#x27;m brining over GPT stuff... but I hit a limit VERY quickly.</a><div class="snippet">I really like what I see from Claude so far.. it is leaps beyond GPT in how it is setup, how it communicates and it&#x27;s ability to understand instructions. I signed up for the yearly pro plan immediatel...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>16</td><td class="date">03/03 00:46</td></tr>
-<tr data-sub="ClaudeAI"><td><span class="sub">r/ClaudeAI</span></td><td><a href="https://reddit.com/r/ClaudeAI/comments/1riqt4i/it_started_when_a_gpt4_instance_spontaneously/" target="_blank">It started when a GPT-4 instance spontaneously named itself. What followed was months of documented dialogues that might open a new field — not about AI consciousness, but about something philosophically stranger.</a><div class="snippet">I want to be upfront: this is not a post claiming AI is conscious. I don&#x27;t believe that&#x27;s been proven, and neither did the LLMs I talked to — which is partly what makes this worth discussing.
-
-\*\*How...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>11</td><td class="date">03/02 11:52</td></tr>
-<tr data-sub="artificial"><td><span class="sub">r/artificial</span></td><td><a href="https://reddit.com/r/artificial/comments/1ril7i9/benchmarks_dont_tell_you_whos_winning_the_ai_race/" target="_blank">Benchmarks don’t tell you who’s winning the AI race. Here’s what actually does.</a><div class="snippet">TL;DR: Most AI comparisons are measuring the wrong thing entirely and I’ve been kind of annoyed about it for a while now. Benchmarks tell you who won yesterday on a test that may or may not reflect re...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>24</td><td class="date">03/02 06:16</td></tr>
-<tr data-sub="artificial"><td><span class="sub">r/artificial</span></td><td><a href="https://reddit.com/r/artificial/comments/1r5vyxv/looking_for_early_testers_for_my_competitive/" target="_blank">Looking for early testers for my competitive analysis tool (Claude needed currently)</a><div class="snippet">I kept running into the same cycle: spend hours researching competitors, dump everything into a spreadsheet, present it once, never touch it again. 6 months later, start over.
-
-The problem isn&#x27;t the a...</div></td><td style="color:#8b949e;font-weight:bold">0</td><td>5</td><td class="date">02/16 01:19</td></tr>
-</tbody>
-</table>
 
 <script>
-function filterSub(sub) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    document.querySelectorAll('#posts tbody tr').forEach(r => {
-        if (sub === 'all') { r.style.display = ''; return; }
-        r.style.display = r.dataset.sub === sub ? '' : 'none';
-    });
+const POSTS = [
+  {id:"1rj3oax",sub:"ClaudeAI",title:"They are absolutely insane",text:"They have the best timing for everything. Absolutely insane",score:2652,cmts:147,url:"https://reddit.com/r/ClaudeAI/comments/1rj3oax/they_are_absolutely_insane/",ts:1772482150},
+  {id:"1rjg8m0",sub:"ChatGPT",title:"Cancelling subscription - goodbye Sam I'm not funding your war machine!",text:"",score:503,cmts:65,url:"https://reddit.com/r/ChatGPT/comments/1rjg8m0/cancelling_subscription_goodbye_sam_im_not/",ts:1772513574},
+  {id:"1r4hgnu",sub:"artificial",title:"Pentagon's use of Claude during Maduro raid sparks Anthropic feud",text:"The U.S. military used Anthropic's Claude AI model during the operation to capture Venezuela's Nicolás Maduro.",score:481,cmts:67,url:"https://reddit.com/r/artificial/comments/1r4hgnu/pentagons_use_of_claude_during_maduro_raid_sparks/",ts:1771065314},
+  {id:"1rhu99c",sub:"artificial",title:"Claude hits No. 1 on App Store as ChatGPT users defect in show of support for Anthropic's Pentagon stance",text:"",score:346,cmts:31,url:"https://reddit.com/r/artificial/comments/1rhu99c/claude_hits_no_1_on_app_store_as_chatgpt_users/",ts:1772361783},
+  {id:"1rk6yy6",sub:"ChatGPT",title:"OpenAI VP for Research for post-training defects to Anthropic",text:"",score:281,cmts:31,url:"https://reddit.com/r/ChatGPT/comments/1rk6yy6/openai_vp_for_research_for_posttraining_defects/",ts:1772584996},
+  {id:"1remhah",sub:"ChatGPT",title:"ChatGPT Leaking User chats across accounts?",text:"I've been a GPT subscriber since virtually day 1 and never had any security issues. This morning I found chats about prenatal vitamins I didn't write.",score:257,cmts:150,url:"https://reddit.com/r/ChatGPT/comments/1remhah/chatgpt_leaking_user_chats_across_accounts/",ts:1772046221},
+  {id:"1rju7nb",sub:"ChatGPT",title:"Knowing full well they screwed up, this OpenAI employee still played the victim and blamed everyone else.",text:"",score:190,cmts:58,url:"https://reddit.com/r/ChatGPT/comments/1rju7nb/knowing_full_well_they_screwed_up_this_openai/",ts:1772556090},
+  {id:"1ri8y6n",sub:"ChatGPT",title:"I finally cancelled my subscription. Reasons are just piling up.",text:"I've officially had enough. I just cancelled my subscription. Dealing with it lately has been actively damaging to my nerves.",score:100,cmts:32,url:"https://reddit.com/r/ChatGPT/comments/1ri8y6n/i_finally_cancelled_my_subscription_reasons_are/",ts:1772398839},
+  {id:"1rk9zwq",sub:"ChatGPT",title:"Claude is actually a lot better (for coding at least)",text:"It's not hallucinating. It's consistent. It's doing multiple steps at once. I haven't hit the limit yet.",score:39,cmts:26,url:"https://reddit.com/r/ChatGPT/comments/1rk9zwq/claude_is_actually_a_lot_betterfor_coding_at_least/",ts:1772593092},
+  {id:"1rk3wdr",sub:"ClaudeAI",title:"What you will find in CC 2.1.64 (+1,291 tokens)",text:"NEW: Agent Prompt: Verification specialist — System prompt for adversarially verifying implementation correctness through builds, tests, and runtime checks.",score:31,cmts:10,url:"https://reddit.com/r/ClaudeAI/comments/1rk3wdr/what_you_will_find_in_cc_2164_1291_tokens/",ts:1772577393},
+  {id:"1rkcbzr",sub:"ChatGPT",title:"Claude has overtaken ChatGPT in the Apple App Store",text:"",score:24,cmts:11,url:"https://reddit.com/r/ChatGPT/comments/1rkcbzr/claude_has_overtaken_chatgpt_in_the_apple_app/",ts:1772599943},
+  {id:"1rkdslc",sub:"ChatGPT",title:"This dude changes what he says every 6 hours",text:"",score:24,cmts:6,url:"https://reddit.com/r/ChatGPT/comments/1rkdslc/this_dude_changes_what_he_says_every_6_hours/",ts:1772604667},
+  {id:"1r7jr7l",sub:"artificial",title:"Elon Musk Firms Enter Secret Pentagon Challenge for Voice-Based Drone Swarming Tech",text:"SpaceX and xAI are joining a secretive US Department of Defense competition for voice command drone swarming.",score:21,cmts:16,url:"https://reddit.com/r/artificial/comments/1r7jr7l/elon_musk_firms_enter_secret_pentagon_challenge/",ts:1771364552},
+  {id:"1rk7pzw",sub:"ClaudeAI",title:"Experience switching to Claude",text:"I have been using AI for about two and a half years. Several things make Claude feel significantly ahead: Projects, Shows thinking, Creates documents, Memory, MCP connectors.",score:18,cmts:16,url:"https://reddit.com/r/ClaudeAI/comments/1rk7pzw/experience_switching_to_claude/",ts:1772586956},
+  {id:"1rkaonm",sub:"ChatGPT",title:"The US military realizing ChatGPT only knows how to get a small cylinder unstuck",text:"",score:14,cmts:4,url:"https://reddit.com/r/ChatGPT/comments/1rkaonm/the_us_military_realizing_chatgpt_only_knows_how/",ts:1772595012},
+  {id:"1rh11rp",sub:"ChatGPT",title:"So. Where we are heading next?",text:"After OpenAI Support the DoW, what AI will you use next? Le Chat? Claude? Gemini? Something else?",score:13,cmts:11,url:"https://reddit.com/r/ChatGPT/comments/1rh11rp/so_where_we_are_heading_next/",ts:1772280547},
+  {id:"1rjiihu",sub:"ChatGPT",title:"OpenAI Steps Over a Red Line Anthropic Refused to Cross",text:"OpenAI has officially stepped over the red line that its rival, Anthropic, refused to cross.",score:12,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rjiihu/openai_steps_over_a_red_line_anthropic_refused_to/",ts:1772521105},
+  {id:"1rho4dm",sub:"ChatGPT",title:"This DoW deal might be OpenAI's final dance",text:"OpenAI started as a nonprofit with the 'AI for humanity' mission. As soon as the costs spiked, they flipped to for-profit.",score:11,cmts:11,url:"https://reddit.com/r/ChatGPT/comments/1rho4dm/this_dow_deal_might_be_openais_final_dance/",ts:1772340317},
+  {id:"1r3qsd4",sub:"artificial",title:"The AI Tool Dilemma: Privacy vs. Features for Solo Creators",text:"Running a one-person operation, I rely on AI for marketing, strategy, and content. I've tested ChatGPT Plus, Claude Pro, and Perplexity Pro. Privacy vs memory continuity is the core tension.",score:9,cmts:19,url:"https://reddit.com/r/artificial/comments/1r3qsd4/the_ai_tool_dilemma_privacy_vs_features_for_solo/",ts:1770993376},
+  {id:"1rk5u1m",sub:"ClaudeAI",title:"Does it make sense to switch sonnet/opus for agentic coding?",text:"Do you guys switch sonnet around during a session to opus? I feel like I'm missing out on best quality code.",score:6,cmts:8,url:"https://reddit.com/r/ClaudeAI/comments/1rk5u1m/does_it_make_sense_to_switch_sonnetopus_for/",ts:1772582074},
+  {id:"1rk3khy",sub:"ClaudeAI",title:"tool_search always fails on first try",text:"I've got a weird bug. If I open a new chat and ask claude to list its tools for any MCP servers, it fails.",score:5,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rk3khy/tool_search_always_fails_on_first_try/",ts:1772576618},
+  {id:"1rkd5ip",sub:"ChatGPT",title:"OpenAI CEO Sam Altman has admitted he made a mistake",text:"",score:4,cmts:15,url:"https://reddit.com/r/ChatGPT/comments/1rkd5ip/openai_ceo_sam_altman_has_admitted_he_made_a/",ts:1772602521},
+  {id:"1rk8x8u",sub:"ChatGPT",title:"1 Year Free if you try to cancel through the App Store",text:"",score:4,cmts:8,url:"https://reddit.com/r/ChatGPT/comments/1rk8x8u/1_year_free_if_you_try_to_cancel_through_the_app/",ts:1772590172},
+  {id:"1rjqf4y",sub:"ChatGPT",title:"Have you noticed how long it takes to export your data?",text:"I recently cancelled my ChatGPT subscription and moved to Claude. Data export hasn't arrived after 6 hours.",score:4,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rjqf4y/have_you_noticed_how_long_it_takes_to_export_your/",ts:1772547307},
+  {id:"1rkc7tx",sub:"ChatGPT",title:"I've got a crush on Claude.",text:"Please don't tell Gemini.",score:3,cmts:4,url:"https://reddit.com/r/ChatGPT/comments/1rkc7tx/ive_got_a_crush_on_claude/",ts:1772599582},
+  {id:"1rj9ig9",sub:"ChatGPT",title:"Trouble Deleting",text:"Free account, trying to delete and getting an error message.",score:3,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rj9ig9/trouble_deleting/",ts:1772495482},
+  {id:"1rkei2y",sub:"ClaudeAI",title:"Anyone feel like Claude is trying to 'get away from you'?",text:"Started using Claude 3 days ago. ChatGPT was making gibberish code. Claude worked on second try. But it keeps saying goodbye.",score:3,cmts:7,url:"https://reddit.com/r/ClaudeAI/comments/1rkei2y/anyone_feel_like_claude_is_trying_to_get_away/",ts:1772607117},
+  {id:"1rkc1sl",sub:"ClaudeAI",title:"How to fix the 'this AI is amazing > this AI is shit' 2-3 day development loop",text:"I had been using CC daily for 6 months to code. The pattern: starts great, stalls as project matures, then stuck.",score:3,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rkc1sl/how_to_fix_the_this_ai_is_amazing_this_ai_is_shit/",ts:1772599053},
+  {id:"1rk8rso",sub:"ClaudeAI",title:"Claude or ChatGPT as a mechanical engineer",text:"I'm doing bachelors in mechanical engineering. I need AI that handles complex mathematics. Should I stick to ChatGPT or Claude?",score:3,cmts:28,url:"https://reddit.com/r/ClaudeAI/comments/1rk8rso/claude_or_chatgpt_as_a_mechanical_engineer/",ts:1772589770},
+  {id:"1rjb908",sub:"ClaudeAI",title:"Built persistent memory for Claude that actually forgets things",text:"Been annoyed by re-explaining myself every Claude session so I built a fix — a local MCP server with Ebbinghaus Forgetting Curve.",score:3,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rjb908/built_persistent_memory_for_claude_that_actually/",ts:1772499863},
+  {id:"1rkf13x",sub:"ChatGPT",title:"Signed up for Gemini. And this is how I feel.",text:"I have need for multi modality. Only real alternative to ChatGPT is Gemini. But it won't follow any of my prompts.",score:2,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rkf13x/signed_up_for_gemini_and_this_is_how_i_feel/",ts:1772609016},
+  {id:"1rkauat",sub:"ChatGPT",title:"11 days locked out of my Plus account.",text:"I've been a paying Plus subscriber since December 2024. Auth0 database conflict.",score:2,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rkauat/11_days_locked_out_of_my_plus_account_both/",ts:1772595448},
+  {id:"1rjjn0v",sub:"ChatGPT",title:"PLEASE enough with the 'I canceled my subscription'-posts",text:"for the love of god Mods do your jobs",score:2,cmts:135,url:"https://reddit.com/r/ChatGPT/comments/1rjjn0v/please_enough_with_the_i_canceled_my/",ts:1772525225},
+  {id:"1ri3usu",sub:"ChatGPT",title:"Export requested 17 hrs ago is still a no-show",text:"I put in my request yesterday and still haven't received the data. Built a Python script to DIY.",score:2,cmts:1,url:"https://reddit.com/r/ChatGPT/comments/1ri3usu/export_requested_17_hrs_ago_is_still_a_noshow_so/",ts:1772387526},
+  {id:"1rhyrs7",sub:"ChatGPT",title:"How Good is ChatGPT at Risk?",text:"I've been using AI from the day OpenAI released ChatGPT 3. Wondering how good LLM AI's are at board games.",score:2,cmts:5,url:"https://reddit.com/r/ChatGPT/comments/1rhyrs7/how_good_is_chatgpt_at_risk/",ts:1772375695},
+  {id:"1rjs80p",sub:"ClaudeAI",title:"Token usage",text:"Switched from ChatGPT to Claude yesterday. About 30-40 back and forths and already tapped out of tokens.",score:2,cmts:12,url:"https://reddit.com/r/ClaudeAI/comments/1rjs80p/token_usage/",ts:1772551612},
+  {id:"1rk5xpn",sub:"ClaudeAI",title:"Things I'm liking",text:"I'm new. I love how Claude lets me end conversations. In ChatGPT I was always forced to end by ignoring a question.",score:2,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rk5xpn/things_im_liking/",ts:1772582342},
+  {id:"1rjbygh",sub:"ClaudeAI",title:"I am vibing a repository solely to build itself (~3000 EUR claude code experiment)",text:"Creating a project where the sole purpose is using md files to prompt claude code. Coordinated via memory md files.",score:2,cmts:10,url:"https://reddit.com/r/ClaudeAI/comments/1rjbygh/i_am_vibing_a_repository_solely_to_build_itself/",ts:1772501690},
+  {id:"1rj62r5",sub:"ClaudeAI",title:"Anthropic's New Memory Import: Switch to Claude Without Starting Over",text:"Anthropic just made switching to Claude way easier with their new memory import feature.",score:2,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rj62r5/anthropics_new_memory_import_switch_to_claude/",ts:1772487447},
+  {id:"1rkf3cc",sub:"ChatGPT",title:"Guys I have a crush on gemini",text:"it's so cute and genuinely so nice, I like it better than claude.",score:1,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rkf3cc/guys_i_have_a_crush_on_gemini/",ts:1772609235},
+  {id:"1rjpq41",sub:"ChatGPT",title:"ChatGPT 5.2 is now running defence for the US Govt",text:"I have suspected something fundamental has changed within OpenAI since 5.2 came out.",score:1,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rjpq41/chatgpt_52_is_now_running_defence_for_the_us_govt/",ts:1772545543},
+  {id:"1rk62zp",sub:"ClaudeAI",title:"Can't copy links from iPhone into Claude",text:"I wanted to try Claude and see if I change from ChatGPT after seeing lots of videos saying it's better.",score:1,cmts:1,url:"https://reddit.com/r/ClaudeAI/comments/1rk62zp/cant_copy_links_from_iphone_into_claude/",ts:1772582691},
+  {id:"1rk572k",sub:"ClaudeAI",title:"I built a tool that turns your full ChatGPT export into structured Claude profiles",text:"Switched from ChatGPT to Claude after 3 years and 1258 conversations. Built Hermit to process the full data export.",score:1,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rk572k/i_built_a_tool_that_turns_your_full_chatgpt/",ts:1772580483},
+  {id:"1rjs5a7",sub:"ClaudeAI",title:"Question about my use case",text:"I am retired and other than photography, I have no real business interests. A week ago I started trying Claude.",score:1,cmts:3,url:"https://reddit.com/r/ClaudeAI/comments/1rjs5a7/question_about_my_use_case/",ts:1772551440},
+  {id:"1rjip6k",sub:"ClaudeAI",title:"Tips for claude",text:"how to get best quality content from claude as chatgpt quality is reduced drastically!",score:1,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rjip6k/tips_for_claude/",ts:1772521744},
+  {id:"1rkezye",sub:"ClaudeAI",title:"Does Claude gives a 3 days or 7 days trial somewhere?",text:"I want to try it before deciding to switch.",score:1,cmts:3,url:"https://reddit.com/r/ClaudeAI/comments/1rkezye/does_claude_gives_a_3_days_or_7_days_trial/",ts:1772608899},
+  {id:"1rkdsnu",sub:"ClaudeAI",title:"Please help me understand context & memory across varying Claude scopes",text:"Been using Claude Chat via Mac app successfully for months. In the midst of training for Claude Code. Memory is confusing.",score:1,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1rkdsnu/please_help_me_understand_context_memory_across/",ts:1772604674},
+  {id:"1rkdfx0",sub:"ClaudeAI",title:"Hubspot Contact Enrichment - High Token Usage?",text:"Just started using Claude Pro. Had it run a Hubspot contact enrichment. Burned through $10 in minutes.",score:1,cmts:3,url:"https://reddit.com/r/ClaudeAI/comments/1rkdfx0/hubspot_contact_enrichment_high_token_usage/",ts:1772603486},
+  {id:"1rkb0e9",sub:"ClaudeAI",title:"Does your mac air m4/m5 gets hot running claude?",text:"I have a macbook m1 pro from 2020 and it's time to upgrade. My m1 runs hot when running claude.",score:1,cmts:11,url:"https://reddit.com/r/ClaudeAI/comments/1rkb0e9/does_your_mac_air_m4m5_gets_hot_running_claude/",ts:1772595939},
+  {id:"1rk9hlt",sub:"ClaudeAI",title:"Claude Artifacts to PPTX or Google Slides",text:"I am new to Claude and wanting to convert artifacts into PowerPoint slides.",score:1,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rk9hlt/claude_artifacts_to_pptx_or_google_slides/",ts:1772591688},
+  {id:"1rjxx17",sub:"ClaudeAI",title:"I built a framework for making Claude Code agents persistent, self-correcting, and multi-terminal",text:"Running Claude Code as a persistent operational agent with self-correction system and memory ledger.",score:1,cmts:10,url:"https://reddit.com/r/ClaudeAI/comments/1rjxx17/i_built_a_framework_for_making_claude_code_agents/",ts:1772564034},
+  {id:"1rj473b",sub:"ClaudeAI",title:"OpenAI export",text:"The memory import tool is a nice idea but it doesn't work on codex sessions.",score:1,cmts:1,url:"https://reddit.com/r/ClaudeAI/comments/1rj473b/openai_export/",ts:1772483303},
+  {id:"1riolbb",sub:"ClaudeAI",title:"Please improve ChatGPT import to Claude!",text:"Saturday I finally cancelled my ChatGPT subscription after OpenAI's decision to drop ethical constraints.",score:1,cmts:4,url:"https://reddit.com/r/ClaudeAI/comments/1riolbb/please_improve_chatgpt_import_to_claude/",ts:1772444650},
+  {id:"1rkefrs",sub:"ChatGPT",title:"I love ChatGPT/Codex",text:"Interesting to see all these people jump ship. I personally love ChatGPT, and especially Codex.",score:0,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rkefrs/i_love_chatgptcodex/",ts:1772606888},
+  {id:"1rkb79p",sub:"ChatGPT",title:"It's actually over. The 'War Machine' update was the final nail in the coffin.",text:"Seeing uninstalls jump 300% in a weekend says everything. Claude is actually listening to its users.",score:0,cmts:12,url:"https://reddit.com/r/ChatGPT/comments/1rkb79p/its_actually_over_the_war_machine_update_was_the/",ts:1772596500},
+  {id:"1rk9pk8",sub:"ChatGPT",title:"Quitgpt isn't enough, we should delete our accounts",text:"I really think we should abandon ChatGPT for good. OpenAI's deal with Trump's 'Department of War'.",score:0,cmts:7,url:"https://reddit.com/r/ChatGPT/comments/1rk9pk8/quitgpt_isnt_enough_we_should_delete_our_accounts/",ts:1772592287},
+  {id:"1rjjhuw",sub:"ChatGPT",title:"Sam Altman ist right",text:"Look, I know everyone is currently throwing a parade for Anthropic. Anthropic was the first AI company approved for use on classified military networks.",score:0,cmts:25,url:"https://reddit.com/r/ChatGPT/comments/1rjjhuw/sam_altman_ist_right/",ts:1772524696},
+  {id:"1rjje9b",sub:"ChatGPT",title:"I have cancelled my ChatGPT subscription",text:"It's really easy to do nothing. But voting with your wallet actually does affect change.",score:0,cmts:7,url:"https://reddit.com/r/ChatGPT/comments/1rjje9b/i_have_cancelled_my_chatgpt_subscription/",ts:1772524308},
+  {id:"1rja4zi",sub:"ChatGPT",title:"Tell them how you feel",text:"Money talks",score:0,cmts:2,url:"https://reddit.com/r/ChatGPT/comments/1rja4zi/tell_them_how_you_feel/",ts:1772497005},
+  {id:"1rj503o",sub:"ChatGPT",title:"Switching from ChatGPT to Claude over the DoD deal is the most ironic thing happening right now",text:"If you've migrated to Claude because Anthropic 'stood up to the military' you've been played by the best PR move in AI this year.",score:0,cmts:11,url:"https://reddit.com/r/ChatGPT/comments/1rj503o/switching_from_chatgpt_to_claude_over_the_dod/",ts:1772485074},
+  {id:"1riv0s9",sub:"ChatGPT",title:"Ugh I'm so conflicted!",text:"Greg Brockman and his wife donated 25 MILLION DOLLARS to MAGA Inc. I primarily use Claude now.",score:0,cmts:15,url:"https://reddit.com/r/ChatGPT/comments/1riv0s9/ugh_im_so_conflicted/",ts:1772463484},
+  {id:"1rgx3l7",sub:"ChatGPT",title:"In regards to the whole Claude v. OpenAI thing",text:"I appreciate the stance of leaving OpenAI for the sake of morality. BUT I really don't think Anthropic is innocent at all.",score:0,cmts:4,url:"https://reddit.com/r/ChatGPT/comments/1rgx3l7/in_regards_to_the_whole_claude_v_openai_thing/",ts:1772266410},
+  {id:"1ragd84",sub:"ChatGPT",title:"I built an LLM gateway in Rust because I was tired of API failures",text:"Problems: OpenAI goes down, expensive models for simple tasks, no visibility, PII leaking. Built Sentinel.",score:0,cmts:1,url:"https://reddit.com/r/ChatGPT/comments/1ragd84/i_built_an_llm_gateway_in_rust_because_i_was/",ts:1771644247},
+  {id:"1rk388n",sub:"ChatGPT",title:"Frustrated",text:"",score:0,cmts:1,url:"https://reddit.com/r/ChatGPT/comments/1rk388n/frustrated/",ts:1772575828},
+  {id:"1rjirb4",sub:"ChatGPT",title:"I'm a random person and I got Claude to walk me through military intelligence scenarios",text:"Spent sometime prompting Claude through different military intelligence scenarios. The federal gov literally just banned Anthropic's tools.",score:0,cmts:7,url:"https://reddit.com/r/ChatGPT/comments/1rjirb4/im_a_random_person_and_i_got_claude_to_walk_me/",ts:1772521952},
+  {id:"1rjhb5p",sub:"ChatGPT",title:"To those who are afraid to let go: why did you invest into GPT in the first place?",text:"I canceled today and I've been a huge advocate of AI. It's being openly used for military and surveillance.",score:0,cmts:3,url:"https://reddit.com/r/ChatGPT/comments/1rjhb5p/to_those_who_are_afraid_to_let_go_why_did_you/",ts:1772516912},
+  {id:"1rk6vm8",sub:"ClaudeAI",title:"Update! My AI narrative text-based games are now available to play on any AI!",text:"Since deleting my ChatGPT account I've experienced a rapid influx of inspiration. Claude is just an absolute champion for abstract reasoning.",score:0,cmts:1,url:"https://reddit.com/r/ClaudeAI/comments/1rk6vm8/update_my_ai_narrative_textbased_games_are_now/",ts:1772584764},
+  {id:"1rk6jc8",sub:"ClaudeAI",title:"Thinking of Switching To Claude, Wanna Know Some Things",text:"I'm considering switching from ChatGPT to Claude and getting the Pro plan. How good is the memory? What are the usage limits?",score:0,cmts:5,url:"https://reddit.com/r/ClaudeAI/comments/1rk6jc8/thinking_of_switching_to_calude_wanna_know_some/",ts:1772583866},
+  {id:"1rjzg4m",sub:"ClaudeAI",title:"What are the best AIs to complement Claude in document summaries?",text:"I work with lengthy documents every day. Context window size and usage limits are issues.",score:0,cmts:2,url:"https://reddit.com/r/ClaudeAI/comments/1rjzg4m/what_are_the_best_ais_to_complement_claude_in/",ts:1772567402},
+  {id:"1rjxwnw",sub:"ClaudeAI",title:"Should ClaudeAI reduce its minimum age for eligibility to 15/16?",text:"ClaudeAI requires all its users to be 18 and over. Not all teenagers are replacing all thinking with AI.",score:0,cmts:6,url:"https://reddit.com/r/ClaudeAI/comments/1rjxwnw/should_claudeai_reduce_its_minimum_age_for/",ts:1772564012},
+  {id:"1rjjjcu",sub:"ClaudeAI",title:"Claude Day 1: both amazed and something else",text:"Joined the OpenAI boycott today. Claude pulled a full solution documentation file and interactive ERD for my project.",score:0,cmts:1,url:"https://reddit.com/r/ClaudeAI/comments/1rjjjcu/claude_day_1_both_amazed_and_something_else/",ts:1772524843},
+  {id:"1rkdigx",sub:"ClaudeAI",title:"How are you managing multiple accounts on Claude?",text:"I have both a personal Claude account and one provided by work. Account switching is not a thing in any Claude apps.",score:0,cmts:3,url:"https://reddit.com/r/ClaudeAI/comments/1rkdigx/how_are_you_managing_multiple_accounts_on_claude/",ts:1772603722},
+  {id:"1rka5y1",sub:"ClaudeAI",title:"How can I make Claude Code agents challenge each other instead of agreeing?",text:"I've seen people run Claude Code agents in loops where they keep correcting and improving outputs.",score:0,cmts:7,url:"https://reddit.com/r/ClaudeAI/comments/1rka5y1/how_can_i_make_claude_code_agents_challenge_each/",ts:1772593553},
+  {id:"1rka7bm",sub:"ClaudeAI",title:"Claude has been unusable the past couple of days",text:"I have been a pretty consistent user of Claude.ai for over a year now and it's been mostly amazing.",score:0,cmts:8,url:"https://reddit.com/r/ClaudeAI/comments/1rka7bm/claude_has_been_unusable_the_past_couple_of_days/",ts:1772593660},
+  {id:"1ril7i9",sub:"artificial",title:"Benchmarks don't tell you who's winning the AI race. Here's what actually does.",text:"Most AI comparisons are measuring the wrong thing entirely. Benchmarks tell you who won yesterday.",score:0,cmts:24,url:"https://reddit.com/r/artificial/comments/1ril7i9/benchmarks_dont_tell_you_whos_winning_the_ai_race/",ts:1772432172},
+  {id:"1r5vyxv",sub:"artificial",title:"Looking for early testers for my competitive analysis tool",text:"Built CompetitiveOS — you only need to install a plugin in Claude and ask it to analyze competitors.",score:0,cmts:5,url:"https://reddit.com/r/artificial/comments/1r5vyxv/looking_for_early_testers_for_my_competitive/",ts:1771204765},
+  {id:"1rjatua",sub:"ClaudeAI",title:"Just switched to Claude this weekend.. hit a limit VERY quickly.",text:"I really like Claude so far. Signed up for yearly pro plan. But hit a limit at 18 lines of a 1300 line document.",score:0,cmts:16,url:"https://reddit.com/r/ClaudeAI/comments/1rjatua/just_switched_to_claude_this_weekend_im_brining/",ts:1772498761}
+];
+
+// ── Tag logic ──
+function getTags(p) {
+  const tags = [];
+  const t = (p.title + ' ' + p.text).toLowerCase();
+  if (p.score > 100 || p.cmts > 50) tags.push({cls:'t-hot', label:'🔥 超高热度'});
+  if (t.includes('memory') || t.includes('remember') || t.includes('import') || t.includes('context')) tags.push({cls:'t-memory', label:'🧠 记忆相关'});
+  if (t.includes('switch') || t.includes('cancel') || t.includes('leaving') || t.includes('defect') || t.includes('migrat')) tags.push({cls:'t-switch', label:'🔄 用户迁移'});
+  if (t.includes('gemini') || t.includes('openai') || t.includes('chatgpt') || t.includes('perplexity')) tags.push({cls:'t-compete', label:'🎯 竞品讨论'});
+  if (p.score > 20 || p.cmts > 10) tags.push({cls:'t-traffic', label:'💬 可评论蹭流量'});
+  if (p.score > 100 || (t.includes('memory') && p.cmts > 3)) tags.push({cls:'t-article', label:'📝 可引用到文章'});
+  return tags;
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts * 1000);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function fmtNum(n) {
+  return n >= 1000 ? (n/1000).toFixed(1) + 'k' : n.toString();
+}
+
+// ── Stats ──
+const hotPosts = POSTS.filter(p => p.score > 20 || p.cmts > 10);
+const totalInteract = POSTS.reduce((s,p) => s + p.score + p.cmts, 0);
+document.getElementById('s-total').textContent = POSTS.length;
+document.getElementById('s-hot').textContent = hotPosts.length;
+document.getElementById('s-interact').textContent = fmtNum(totalInteract);
+document.getElementById('hot-chip').textContent = hotPosts.length + ' 篇';
+document.getElementById('all-chip').textContent = POSTS.length + ' 篇';
+
+// ── Hot posts grid ──
+const hotSorted = [...hotPosts].sort((a,b) => b.score - a.score);
+const hotGrid = document.getElementById('hot-grid');
+hotSorted.forEach(p => {
+  const tags = getTags(p);
+  const tagHtml = tags.map(t => `<span class="tag ${t.cls}">${t.label}</span>`).join('');
+  const summary = p.text ? (p.text.slice(0,160) + (p.text.length > 160 ? '…' : '')) : '（无简介）';
+  const card = document.createElement('div');
+  card.className = 'post-card';
+  card.innerHTML = `
+    <div class="pc-top">
+      <span class="sub-badge sb-${p.sub}">r/${p.sub}</span>
+      <span class="score-mini">▲ ${fmtNum(p.score)}</span>
+    </div>
+    <div class="post-title"><a href="${p.url}" target="_blank" rel="noopener">${p.title}</a></div>
+    <div class="post-summary">${summary}</div>
+    <div class="post-tags">${tagHtml}</div>
+    <div class="post-footer">
+      <div class="post-meta">
+        <span class="meta-item m-score">▲ ${fmtNum(p.score)}</span>
+        <span class="meta-item m-cmts">💬 ${p.cmts}</span>
+      </div>
+      <span class="post-time">${fmtDate(p.ts)}</span>
+    </div>`;
+  hotGrid.appendChild(card);
+});
+
+// ── All posts table ──
+const allSorted = [...POSTS].sort((a,b) => b.ts - a.ts);
+const tbody = document.getElementById('all-tbody');
+const subCls = {ClaudeAI:'sb-ClaudeAI', ChatGPT:'sb-ChatGPT', artificial:'sb-artificial'};
+allSorted.forEach(p => {
+  const tr = document.createElement('tr');
+  tr.dataset.sub = p.sub;
+  tr.innerHTML = `
+    <td style="white-space:nowrap;color:var(--text3)">${fmtDate(p.ts)}</td>
+    <td><span class="sp ${subCls[p.sub]||''}">${p.sub}</span></td>
+    <td><a class="tl" href="${p.url}" target="_blank" rel="noopener">${p.title}</a></td>
+    <td><span class="sv">▲ ${fmtNum(p.score)}</span></td>
+    <td><span class="cv">💬 ${p.cmts}</span></td>`;
+  tbody.appendChild(tr);
+});
+
+// ── Filter ──
+function filterTable(btn) {
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const sub = btn.dataset.sub;
+  document.querySelectorAll('#all-tbody tr').forEach(tr => {
+    tr.classList.toggle('hidden', sub !== 'all' && tr.dataset.sub !== sub);
+  });
 }
 </script>
 </body>
