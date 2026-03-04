@@ -31,7 +31,7 @@ This is your context — and until recently, it had nowhere to go. Switch platfo
 
 <img width="2600" height="1463" alt="image" src="https://github.com/user-attachments/assets/e9737e50-c1e4-416c-848e-b4f08aba36e6" />
 
-*Claude's import tool works with ChatGPT, Gemini, Copilot, and other major platforms. (Source: Google Blog)*
+*The claude.com/import-memory page — Anthropic's official tool for bringing your AI memory from ChatGPT, Gemini, or Copilot into Claude. (Source: Anthropic)*
 
 The tool at `claude.com/import-memory` works in a few steps:
 
@@ -95,7 +95,9 @@ The import tool addresses the explicit layer. The implicit layer — the accumul
 ---
 
 ## What a Complete Solution Looks Like
+
 <img width="1472" height="1239" alt="image" src="https://github.com/user-attachments/assets/8d779ccc-2a09-419a-b998-09f1d0cd62e9" />
+*Memdex captures AI collaboration context continuously in the background — structured, searchable, and available across any platform. (Source: Memdex)*
 
 A genuinely portable AI memory layer needs to work differently at the architectural level:
 
@@ -114,6 +116,15 @@ This is what [Memdex](https://memdex.ai) is built around. Rather than a one-time
 ## The Migration Moment as a Signal
 
 The fact that Anthropic built a migration tool at all is significant. It's an acknowledgment that context portability is a real user need — and that the industry is starting to compete on it.
+
+There's another dimension worth considering: the pace at which models are improving.
+
+![AI model release and capabilities timeline — GPQA Diamond benchmark scores, 2025–2026](sota%20model%20changing%20timeline.png)
+*Frontier AI capability (GPQA Diamond benchmark) has more than doubled since early 2025, with new SOTA models releasing every few weeks. Each new model is a potential upgrade — but only if your context can travel with you.*
+
+From DeepSeek R1 to GPT-5, from Gemini 2.5 Pro to Claude 4.6, the gap between consecutive SOTA models is measured in weeks, not years. Every time a meaningfully better model arrives, users who've accumulated context on the previous generation face the same choice: stay with the familiar model, or start over somewhere better.
+
+Portable memory dissolves that choice. Your context compounds with each model generation rather than resetting.
 
 Claude's outage on March 2-3 — triggered by unprecedented demand from switching users — made the stakes visceral. Thousands of people, in the middle of migrating their AI context, discovered in real time how dependent their work had become on AI access. When the platform went down, work stopped.
 

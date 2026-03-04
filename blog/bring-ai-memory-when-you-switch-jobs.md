@@ -136,7 +136,12 @@ For most of professional history, career capital was cognitive: what you know, h
 
 AI collaboration is creating a new form of professional capital: the accumulated context between you and your AI tools. This is also a product of your expertise — but unlike knowledge, it can exist in infrastructure you don't control.
 
-The professionals who recognize this early — who treat their AI collaboration context as career capital to be maintained and owned, not left in employer accounts — will have an advantage. They'll arrive at new roles with continuity. They'll capture the upside of every new model release. They'll be resilient to platform outages and policy changes.
+![AI model capabilities have more than doubled in benchmark scores since early 2025](sota%20model%20changing%20timeline.png)
+*New frontier models arrive every few weeks. Users with portable memory capture each upgrade — users locked to one platform's account start over every time they switch.*
+
+The chart above shows something important: AI capability isn't a destination, it's a moving line. GPT-5, Claude Opus 4.5, Gemini 3 Pro — each one represents a meaningful jump in what's possible. The professionals who benefit most from each new release are the ones whose accumulated context can travel forward with them.
+
+The professionals who recognize this early — who treat their AI collaboration context as career capital to be maintained and owned, not left in employer accounts — will have an advantage. They'll arrive at new roles with continuity. They'll capture the upside of every new model release without paying the re-onboarding tax. They'll be resilient to platform outages and policy changes.
 
 Your expertise is portable by nature. Your AI memory can be too — but only if you plan for it.
 
