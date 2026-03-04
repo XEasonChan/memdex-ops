@@ -77,8 +77,6 @@ Beyond this fundamental constraint, users who've tested the tool reported severa
 
 **The professional focus filter.** Claude's memory system is oriented toward work tasks, which means it may quietly drop imported personal details unrelated to professional context. Users who'd trained their AI on personal habits or lifestyle preferences found those didn't carry over.
 
-![Understanding the gap between stored facts and connected context](https://github.com/robert-mcdermott/ai-knowledge-graph/raw/main/data/ai-knowledge-graph-example.png)
-*A knowledge graph shows connected context — the relationships between facts that make memory actually useful. Most import tools move facts, not the connections. (Source: GitHub / robert-mcdermott, open source)*
 
 ---
 
@@ -97,9 +95,7 @@ The import tool addresses the explicit layer. The implicit layer — the accumul
 ---
 
 ## What a Complete Solution Looks Like
-
-<img width="1600" height="911" alt="Code_Generated_Image" src="https://github.com/user-attachments/assets/6e32ca5e-6d02-4914-804c-f48ebcba8e7c" />
-*Model improvements compound over time — but only for users whose context isn't locked to a previous generation.*
+<img width="1472" height="1239" alt="image" src="https://github.com/user-attachments/assets/8d779ccc-2a09-419a-b998-09f1d0cd62e9" />
 
 A genuinely portable AI memory layer needs to work differently at the architectural level:
 
