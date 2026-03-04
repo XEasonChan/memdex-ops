@@ -160,6 +160,52 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans
 .hidden { display: none !important; }
 .no-results { padding: 32px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
+/* CONTENT CALENDAR */
+.cal-progress-wrap { background: var(--card); border-radius: var(--radius); padding: 18px 22px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 24px; display: flex; align-items: center; gap: 18px; }
+.cal-progress-label { font-size: 14px; font-weight: 700; white-space: nowrap; }
+.cal-progress-bar-bg { flex: 1; height: 12px; background: var(--bg-alt); border-radius: 6px; overflow: hidden; }
+.cal-progress-bar { height: 100%; background: linear-gradient(90deg, var(--orange), #FF6534); border-radius: 6px; transition: width .4s ease; }
+.cal-progress-text { font-size: 13px; font-weight: 700; color: var(--orange); white-space: nowrap; min-width: 60px; text-align: right; }
+
+.cal-week { margin-bottom: 20px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+.cal-week-header { display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: var(--bg-alt); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; transition: background .15s; }
+.cal-week-header:hover { background: var(--orange-bg); }
+.cal-week-title { font-size: 15px; font-weight: 700; flex: 1; }
+.cal-week-meta { font-size: 12px; color: var(--text-muted); }
+.cal-week-toggle { font-size: 12px; color: var(--text-muted); transition: transform .2s; }
+.cal-week-toggle.open { transform: rotate(90deg); }
+.cal-week-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.cal-week-body.collapsed { display: none; }
+
+.cal-day { background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; transition: box-shadow .15s, transform .15s; }
+.cal-day:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.cal-day.done { opacity: 0.6; }
+.cal-day.done .cal-task-title { text-decoration: line-through; color: var(--text-muted); }
+
+.cal-day-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cal-date { font-size: 13px; font-weight: 800; color: var(--text); white-space: nowrap; min-width: 38px; }
+.cal-priority { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.cal-priority.HIGH { background: #FFE8E3; color: #C0392B; border: 1px solid rgba(192,57,43,.2); }
+.cal-priority.MED  { background: #FFFDE7; color: #B8860B; border: 1px solid rgba(184,134,11,.2); }
+.cal-priority.LOW  { background: #F5F5F5; color: #757575; border: 1px solid rgba(0,0,0,.12); }
+.cal-status-btn { margin-left: auto; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--card); color: var(--text-mid); cursor: pointer; transition: all .15s; white-space: nowrap; }
+.cal-status-btn:hover { border-color: var(--orange); color: var(--orange); }
+.cal-status-btn.done-btn { background: #EDF7ED; color: #2E7D32; border-color: #2E7D32; }
+
+.cal-tasks { display: flex; flex-direction: column; gap: 6px; }
+.cal-task { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+.cal-channel { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+.ch-twitter    { background: #E8F4FD; color: #1DA1F2; border: 1px solid rgba(29,161,242,.2); }
+.ch-reddit     { background: #FFF3EF; color: #FF4500; border: 1px solid rgba(255,69,0,.2); }
+.ch-hn         { background: #FFF3E0; color: #E65100; border: 1px solid rgba(230,81,0,.2); }
+.ch-linkedin   { background: #E3F2FD; color: #0A66C2; border: 1px solid rgba(10,102,194,.2); }
+.ch-blog       { background: #E8F5E9; color: #1B5E20; border: 1px solid rgba(27,94,32,.2); }
+.ch-newsletter { background: #EDE7F6; color: #4527A0; border: 1px solid rgba(69,39,160,.2); }
+.ch-video      { background: #FCE4EC; color: #C62828; border: 1px solid rgba(198,40,40,.2); }
+.cal-task-title { font-size: 13px; font-weight: 600; flex: 1; min-width: 180px; }
+.cal-doc-link { font-size: 11px; color: var(--orange); text-decoration: none; white-space: nowrap; flex-shrink: 0; border: 1px solid rgba(255,69,0,.2); padding: 1px 7px; border-radius: 6px; background: var(--orange-bg); }
+.cal-doc-link:hover { background: var(--orange); color: #fff; }
+
 /* FOOTER */
 .footer { text-align: center; padding: 24px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 48px; }
 
@@ -182,6 +228,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans
   <nav class="topbar-nav">
     <a href="#sec-comp">📊 竞品</a>
     <a href="#sec-rev">💬 评论</a>
+    <a href="#sec-cal">📅 日历</a>
     <a href="#sec-hot">🔥 高价值</a>
     <a href="#sec-all">📝 全部</a>
   </nav>
@@ -394,6 +441,282 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans
       </div>
     </div>
     <p class="rev-disclaimer">⚠️ 示例/代表性评论 — 实际评论需 JS 渲染</p>
+  </div>
+</section>
+
+<!-- C2. CONTENT CALENDAR -->
+<section class="section" id="sec-cal">
+  <div class="section-header">
+    <h2>📅 内容发布日历</h2>
+    <span class="section-count">3/4 – 3/21 · 3周</span>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="cal-progress-wrap">
+    <div class="cal-progress-label">📊 发布进度</div>
+    <div class="cal-progress-bar-bg">
+      <div class="cal-progress-bar" id="cal-bar" style="width:0%"></div>
+    </div>
+    <div class="cal-progress-text" id="cal-progress-text">0 / 13</div>
+  </div>
+
+  <!-- Week 1 -->
+  <div class="cal-week" id="cal-week-1">
+    <div class="cal-week-header" onclick="toggleWeek(1)">
+      <span class="cal-week-title">📅 Week 1 &nbsp;<span style="font-weight:400;color:var(--text-muted)">3月4日 – 3月7日</span></span>
+      <span class="cal-week-meta" id="week-1-meta">4 任务</span>
+      <span class="cal-week-toggle open" id="toggle-1">▶</span>
+    </div>
+    <div class="cal-week-body" id="week-body-1">
+
+      <!-- 3/4 -->
+      <div class="cal-day" id="task-0">
+        <div class="cal-day-header">
+          <span class="cal-date">3/4</span>
+          <span class="cal-priority HIGH">🔴 HIGH</span>
+          <button class="cal-status-btn" onclick="toggleTask(0)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-twitter">🐦 Twitter ×2</span>
+            <span class="cal-task-title">OpenAI军方角度</span>
+            <a href="https://docs.google.com/document/d/1oOWyEUnFR8BQOjbWobQ0YAIyAlERB3N0YKeber8tV50/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/5 -->
+      <div class="cal-day" id="task-1">
+        <div class="cal-day-header">
+          <span class="cal-date">3/5</span>
+          <span class="cal-priority HIGH">🔴 HIGH</span>
+          <button class="cal-status-btn" onclick="toggleTask(1)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-reddit">🟠 Reddit r/ChatGPT</span>
+            <span class="cal-task-title">OpenAI军方角度 Reddit版</span>
+            <a href="https://docs.google.com/document/d/1JlZ9yLWa29prYwJR43hCCjytlAvSiMfPS_pq05HNB20/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+          <div class="cal-task">
+            <span class="cal-channel ch-twitter">🐦 Twitter</span>
+            <span class="cal-task-title">OpenAI军方角度 Twitter</span>
+            <a href="https://docs.google.com/document/d/1oOWyEUnFR8BQOjbWobQ0YAIyAlERB3N0YKeber8tV50/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/6 -->
+      <div class="cal-day" id="task-2">
+        <div class="cal-day-header">
+          <span class="cal-date">3/6</span>
+          <span class="cal-priority HIGH">🔴 HIGH</span>
+          <button class="cal-status-btn" onclick="toggleTask(2)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-blog">📝 Blog</span>
+            <span class="cal-task-title">Leaving OpenAI</span>
+            <a href="https://docs.google.com/document/d/1kSRcRlOGXxRuZpP_F2xmXoeCKT4pdLpc5jslGW-t6WY/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/7 -->
+      <div class="cal-day" id="task-3">
+        <div class="cal-day-header">
+          <span class="cal-date">3/7</span>
+          <span class="cal-priority MED">🟡 MED</span>
+          <button class="cal-status-btn" onclick="toggleTask(3)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-reddit">🟠 Reddit r/ClaudeAI</span>
+            <span class="cal-task-title">Memdex 记忆迁移帖</span>
+            <a href="https://docs.google.com/document/d/1RzOn27U0EbCNbgp3hkgdAgD110gDv1FNBMCYCLZ3suM/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Week 2 -->
+  <div class="cal-week" id="cal-week-2">
+    <div class="cal-week-header" onclick="toggleWeek(2)">
+      <span class="cal-week-title">📅 Week 2 &nbsp;<span style="font-weight:400;color:var(--text-muted)">3月10日 – 3月14日</span></span>
+      <span class="cal-week-meta" id="week-2-meta">5 任务</span>
+      <span class="cal-week-toggle open" id="toggle-2">▶</span>
+    </div>
+    <div class="cal-week-body" id="week-body-2">
+
+      <!-- 3/10 -->
+      <div class="cal-day" id="task-4">
+        <div class="cal-day-header">
+          <span class="cal-date">3/10</span>
+          <span class="cal-priority HIGH">🔴 HIGH</span>
+          <button class="cal-status-btn" onclick="toggleTask(4)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-hn">🟤 HN Show HN</span>
+            <span class="cal-task-title">Show HN: Memdex</span>
+            <a href="https://docs.google.com/document/d/1wPkIJCuNhP9P9of1h4lrviroyZgXVws-bHybcXVCiMg/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+          <div class="cal-task">
+            <span class="cal-channel ch-twitter">🐦 Twitter Thread</span>
+            <span class="cal-task-title">OpenAI军方角度 Thread</span>
+            <a href="https://docs.google.com/document/d/1oOWyEUnFR8BQOjbWobQ0YAIyAlERB3N0YKeber8tV50/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/11 -->
+      <div class="cal-day" id="task-5">
+        <div class="cal-day-header">
+          <span class="cal-date">3/11</span>
+          <span class="cal-priority MED">🟡 MED</span>
+          <button class="cal-status-btn" onclick="toggleTask(5)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-linkedin">🔵 LinkedIn</span>
+            <span class="cal-task-title">换工作丢AI记忆</span>
+            <a href="https://docs.google.com/document/d/1LeV1z45lCrAcSXkAuH-wbw7L8yrsb7HTvnQ8acZXIa4/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/12 -->
+      <div class="cal-day" id="task-6">
+        <div class="cal-day-header">
+          <span class="cal-date">3/12</span>
+          <span class="cal-priority MED">🟡 MED</span>
+          <button class="cal-status-btn" onclick="toggleTask(6)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-reddit">🟠 Reddit r/productivity</span>
+            <span class="cal-task-title">AI记忆跨工具解决方案</span>
+            <a href="https://docs.google.com/document/d/1lV6ZzgHwoI5JGMoPeCAMqve6nqRDPBZtSBhqY9UzsMc/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/13 -->
+      <div class="cal-day" id="task-7">
+        <div class="cal-day-header">
+          <span class="cal-date">3/13</span>
+          <span class="cal-priority MED">🟡 MED</span>
+          <button class="cal-status-btn" onclick="toggleTask(7)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-newsletter">💜 Newsletter</span>
+            <span class="cal-task-title">Ben's Bites 投稿</span>
+            <a href="https://docs.google.com/document/d/1JzgXvdzxLFWXEKY9JpwdXlR5heq6Zt8Eb8i6rJ6CRak/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/14 -->
+      <div class="cal-day" id="task-8">
+        <div class="cal-day-header">
+          <span class="cal-date">3/14</span>
+          <span class="cal-priority MED">🟡 MED</span>
+          <button class="cal-status-btn" onclick="toggleTask(8)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-twitter">🐦 Twitter Thread</span>
+            <span class="cal-task-title">AI记忆不属于你</span>
+            <a href="https://docs.google.com/document/d/1oOWyEUnFR8BQOjbWobQ0YAIyAlERB3N0YKeber8tV50/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Week 3 -->
+  <div class="cal-week" id="cal-week-3">
+    <div class="cal-week-header" onclick="toggleWeek(3)">
+      <span class="cal-week-title">📅 Week 3 &nbsp;<span style="font-weight:400;color:var(--text-muted)">3月17日 – 3月21日</span></span>
+      <span class="cal-week-meta" id="week-3-meta">4 任务</span>
+      <span class="cal-week-toggle open" id="toggle-3">▶</span>
+    </div>
+    <div class="cal-week-body" id="week-body-3">
+
+      <!-- 3/17 -->
+      <div class="cal-day" id="task-9">
+        <div class="cal-day-header">
+          <span class="cal-date">3/17</span>
+          <span class="cal-priority LOW">⚪ LOW</span>
+          <button class="cal-status-btn" onclick="toggleTask(9)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-linkedin">🔵 LinkedIn</span>
+            <span class="cal-task-title">团队多模型协作</span>
+            <a href="https://docs.google.com/document/d/1LeV1z45lCrAcSXkAuH-wbw7L8yrsb7HTvnQ8acZXIa4/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/18 -->
+      <div class="cal-day" id="task-10">
+        <div class="cal-day-header">
+          <span class="cal-date">3/18</span>
+          <span class="cal-priority LOW">⚪ LOW</span>
+          <button class="cal-status-btn" onclick="toggleTask(10)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-twitter">🐦 Twitter Thread</span>
+            <span class="cal-task-title">Best AI model for your use case</span>
+            <a href="https://docs.google.com/document/d/1oOWyEUnFR8BQOjbWobQ0YAIyAlERB3N0YKeber8tV50/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/19 -->
+      <div class="cal-day" id="task-11">
+        <div class="cal-day-header">
+          <span class="cal-date">3/19</span>
+          <span class="cal-priority LOW">⚪ LOW</span>
+          <button class="cal-status-btn" onclick="toggleTask(11)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-video">🎥 TikTok / Reels</span>
+            <span class="cal-task-title">30秒短视频 — Memdex演示</span>
+            <a href="https://docs.google.com/document/d/1G4PCNF4Kjy6TSrIidhg7mHHe9OgQHCfhnNmTK9hNtGw/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3/21 -->
+      <div class="cal-day" id="task-12">
+        <div class="cal-day-header">
+          <span class="cal-date">3/21</span>
+          <span class="cal-priority LOW">⚪ LOW</span>
+          <button class="cal-status-btn" onclick="toggleTask(12)">待发布</button>
+        </div>
+        <div class="cal-tasks">
+          <div class="cal-task">
+            <span class="cal-channel ch-video">🎥 YouTube Shorts</span>
+            <span class="cal-task-title">YouTube Shorts — Memdex演示</span>
+            <a href="https://docs.google.com/document/d/1G4PCNF4Kjy6TSrIidhg7mHHe9OgQHCfhnNmTK9hNtGw/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+          <div class="cal-task">
+            <span class="cal-channel ch-twitter">🐦 Twitter CTA</span>
+            <span class="cal-task-title">Twitter CTA 收尾</span>
+            <a href="https://docs.google.com/document/d/1oOWyEUnFR8BQOjbWobQ0YAIyAlERB3N0YKeber8tV50/edit" target="_blank" class="cal-doc-link">📄 Doc ↗</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </section>
 
@@ -696,12 +1019,67 @@ function sortBy(key) {
   renderTable();
 }
 
+// ─── CONTENT CALENDAR ────────────────────────────────────────
+const CAL_TOTAL = 13;
+const CAL_KEY = 'memdex_cal_done';
+
+function calLoadState() {
+  try { return JSON.parse(localStorage.getItem(CAL_KEY) || '{}'); } catch(e) { return {}; }
+}
+function calSaveState(state) {
+  localStorage.setItem(CAL_KEY, JSON.stringify(state));
+}
+
+function calUpdateProgress() {
+  const state = calLoadState();
+  const done = Object.values(state).filter(Boolean).length;
+  const pct = Math.round(done / CAL_TOTAL * 100);
+  const bar = document.getElementById('cal-bar');
+  const txt = document.getElementById('cal-progress-text');
+  if (bar) bar.style.width = pct + '%';
+  if (txt) txt.textContent = done + ' / ' + CAL_TOTAL + ' 已完成';
+}
+
+function toggleTask(idx) {
+  const state = calLoadState();
+  state['t' + idx] = !state['t' + idx];
+  calSaveState(state);
+  applyCalState();
+}
+
+function applyCalState() {
+  const state = calLoadState();
+  for (let i = 0; i < CAL_TOTAL; i++) {
+    const el = document.getElementById('task-' + i);
+    if (!el) continue;
+    const isDone = !!state['t' + i];
+    const btn = el.querySelector('.cal-status-btn');
+    if (isDone) {
+      el.classList.add('done');
+      if (btn) { btn.textContent = '✅ 已发布'; btn.classList.add('done-btn'); }
+    } else {
+      el.classList.remove('done');
+      if (btn) { btn.textContent = '待发布'; btn.classList.remove('done-btn'); }
+    }
+  }
+  calUpdateProgress();
+}
+
+function toggleWeek(n) {
+  const body = document.getElementById('week-body-' + n);
+  const toggle = document.getElementById('toggle-' + n);
+  if (!body) return;
+  body.classList.toggle('collapsed');
+  if (toggle) toggle.classList.toggle('open');
+}
+
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   renderStats();
   renderCharts();
   renderHot();
   renderTable();
+  applyCalState();
 
   document.getElementById('fs').addEventListener('input', applyFilter);
   document.getElementById('fsub').addEventListener('change', applyFilter);
