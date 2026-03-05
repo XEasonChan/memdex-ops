@@ -156,12 +156,15 @@ For job-switchers specifically, the official tool addresses a scenario that does
 
 ## What Portable AI Memory Actually Looks Like
 
-![Memdex: your AI collaboration memory, stored in your account, not your employer's](https://memdex.ai/assets/image/og-image.jpg)
-*Memdex captures AI collaboration context continuously — stored in your personal account, independent of any employer or platform. (Source: memdex.ai)*
+![Memdex converts your AI chats into lasting, portable memories — stored in your personal account](./memdex-convert-chats-to-memories.jpg)
+*Memdex captures your AI collaboration context across platforms and stores it in your personal account — not your employer's. (Source: Memdex)*
 
 The job-change problem requires a different structural approach: AI memory that is never in the company account to begin with.
 
 [Memdex](https://memdex.ai) is a browser extension designed around this premise. While you work with ChatGPT, Claude, Gemini, or other AI tools, Memdex runs in the background — identifying your patterns, terminology, decision frameworks, and working style as they emerge from actual usage. This context is stored in your *personal* Memdex account, not in the platform's infrastructure, and not in your employer's workspace.
+
+![Bring context with you in any AI tool — Memdex injects your personal context wherever you work](./memdex-bring-context-any-ai-tool.jpg)
+*When you open any AI tool — at your current company, your next one, or a new model entirely — Memdex injects your personal context automatically. (Source: Memdex)*
 
 The practical difference at job-change time:
 

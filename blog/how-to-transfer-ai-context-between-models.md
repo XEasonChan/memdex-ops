@@ -163,6 +163,9 @@ As one guide for switchers put it: *"Your personalization doesn't just live in s
 
 ## Side-by-Side: Claude's Official Tool vs. Memdex
 
+![Memdex — shared memory layer across ChatGPT, Claude, Gemini, and every AI tool you use](./memdex-shared-memory-all-ai-tools.png)
+*Memdex sits as a shared memory layer across all your AI tools — not locked to any single platform. (Source: Memdex)*
+
 Understanding the difference helps you choose the right approach for your situation.
 
 | | Claude Official Import | Memdex |
@@ -182,18 +185,28 @@ Understanding the difference helps you choose the right approach for your situat
 
 The two aren't mutually exclusive. Many users start with the official import to get immediate context in Claude, and use Memdex to ensure their memory keeps growing and stays portable from that point forward.
 
+![Memdex auto-captures your conversations from ChatGPT, Claude, and Gemini into your personal account](./memdex-auto-capture-all-chats.jpg)
+*Memdex captures context from every AI platform continuously in the background — no manual export needed. (Source: Memdex)*
+
 ---
 
-## Why Model Velocity Makes This Matter More Every Month
+## Your Memory Should Outlive Every Model
+
+![Continue a chat anywhere — your saved context travels across every AI tool](./memdex-continue-chat-anywhere.jpg)
+*With Memdex, your conversation history and context follow you into any AI tool — today's model and tomorrow's. (Source: Memdex)*
 
 ![AI model release and capabilities timeline — GPQA Diamond benchmark scores, 2025–2026](sota%20model%20changing%20timeline.png)
 *Frontier AI capabilities more than doubled from early 2025 to early 2026, with new SOTA models arriving every few weeks.*
 
-The SOTA chart above makes the underlying argument visible. From DeepSeek R1 to GPT-5, from Gemini 2.5 Pro to Claude 4.6, new models with measurably better capabilities are releasing every few weeks. Each one is a potential upgrade.
+Look at the trajectory in the chart above. GPT-3.5 to GPT-4. GPT-4 to o1. o1 to GPT-5. Claude 3 to Claude 4 to Claude 4.6. Each generation delivers meaningfully better results — and that pace isn't slowing down. GPT-6, Claude 5, Gemini 4 are already being built. The next model that matters to your work is probably 3–6 months away.
 
-But here's the problem: every upgrade requires either staying with your current platform (and missing the new capability) or switching (and paying the context re-onboarding cost). The official migration tool reduces that cost for a single switch. Continuous portable memory eliminates it for every switch going forward.
+Here's what that means if your memory lives inside a single platform's account: **every new model release forces a tax.** You either stay on the older model (safe, but falling behind) or migrate to the new one (better, but pay the re-onboarding cost again). The more valuable your accumulated context, the more painful that choice becomes.
 
-Claude's outage on March 2-3 — triggered by the mass migration — illustrated the other side of this: platform dependency is real. When Claude went down, work stopped for thousands of people mid-migration. The goal isn't just to move your memory from one platform to another. It's to stop being fully dependent on any single platform's uptime, policy, or pricing decisions.
+The solution is to store your memory somewhere that isn't inside any model's account at all — on your own side of the conversation.
+
+When Memdex captures your AI context, it stores it in your personal account on your device and our servers. It's not inside OpenAI's infrastructure. It's not inside Anthropic's. It's not inside Google's. When GPT-6 launches and you want to try it, your full context is already there waiting. No import prompt. No 24-hour delay. No risk of the export being blocked. You just open the new model and pick up where you left off.
+
+Claude's outage on March 2-3 — triggered by the mass migration — illustrated the other side of this: platform dependency is real. When Claude went down, work stopped for thousands of people mid-migration. Storing your memory outside any single platform means an outage becomes an inconvenience, not a data loss event.
 
 ---
 
