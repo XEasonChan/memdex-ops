@@ -192,9 +192,6 @@ The two aren't mutually exclusive. Many users start with the official import to 
 
 ## Your Memory Should Outlive Every Model
 
-![Continue a chat anywhere — your saved context travels across every AI tool](./memdex-continue-chat-anywhere.jpg)
-*With Memdex, your conversation history and context follow you into any AI tool — today's model and tomorrow's. (Source: Memdex)*
-
 ![AI model release and capabilities timeline — GPQA Diamond benchmark scores, 2025–2026](sota%20model%20changing%20timeline.png)
 *Frontier AI capabilities more than doubled from early 2025 to early 2026, with new SOTA models arriving every few weeks.*
 
