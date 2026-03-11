@@ -1,17 +1,17 @@
 ---
-title: "ChatGPT Memory at Work: What You Lose When You Leave Your Job"
+title: "How to export ChatGPT Team Account Memory: What You Lose When You Leave Your Job"
 slug: "chatgpt-memory-at-work-what-you-lose-when-you-leave"
 description: "7M+ workers use ChatGPT Team at work. When you leave your job, that AI memory stays behind. Here's what's actually at stake — and how to protect your context."
 canonical: "https://memdex.ai/blog/chatgpt-memory-at-work-what-you-lose-when-you-leave"
 
-og_title: "ChatGPT Memory at Work: What You Lose When You Leave Your Job"
+og_title: "How to export ChatGPT Team Account Memory: What You Lose When You Leave Your Job"
 og_description: "When you leave a job, your company's ChatGPT Team account — and all the AI context you built in it — disappears. Here's what that actually means for professionals."
 og_image: "https://memdex.ai/blog/og-chatgpt-memory-job-switch.png"
 og_type: "article"
 og_url: "https://memdex.ai/blog/chatgpt-memory-at-work-what-you-lose-when-you-leave"
 
 twitter_card: "summary_large_image"
-twitter_title: "ChatGPT Memory at Work: What You Lose When You Leave"
+twitter_title: "How to export ChatGPT Team Account Memory: What You Lose When You Leave"
 twitter_description: "7M+ workplace seats. When you quit, your AI context stays behind. Here's the problem no one talks about in the offboarding checklist."
 twitter_image: "https://memdex.ai/blog/og-chatgpt-memory-job-switch.png"
 twitter_site: "@memdex_ai"
@@ -32,7 +32,7 @@ keywords: "losing ChatGPT access when leaving company, ChatGPT Team memory acces
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "ChatGPT Memory at Work: What You Lose When You Leave Your Job",
+    "headline": "How to export ChatGPT Team Account Memory: What You Lose When You Leave Your Job",
     "description": "7M+ workers use ChatGPT Team at work. When you leave your job, that AI memory stays behind. Here's what's actually at stake — and how to protect your context.",
     "image": "https://memdex.ai/blog/og-chatgpt-memory-job-switch.png",
     "author": { "@type": "Organization", "name": "Memdex", "url": "https://memdex.ai" },
@@ -87,7 +87,7 @@ keywords: "losing ChatGPT access when leaving company, ChatGPT Team memory acces
 </script>
 -->
 
-# ChatGPT Memory at Work: What You Lose When You Leave Your Job
+# How to export ChatGPT Team Account Memory: What You Lose When You Leave Your Job
 
 *March 2026 · 7 min read*
 
@@ -112,8 +112,8 @@ Traditional employment exits had a clear logic: your judgment and experience bel
 
 AI has created a third category that doesn't map cleanly to either side.
 
-![When the company owns the account, they own the memory inside it](https://techcrunch.com/wp-content/uploads/2023/09/GettyImages-1647521480-e1694685235777.jpg)
-*ChatGPT Team accounts are owned by the employer — and so is all the AI context built inside them. (Source: TechCrunch / Getty Images)*
+<img width="1408" height="768" alt="Gemini_Generated_Image_wk0muawk0muawk0m (1)" src="https://github.com/user-attachments/assets/85220c95-a274-4c4a-bb4a-c36ef4a719bb" />
+*ChatGPT Team accounts are owned by the employer — and so is all the AI context built inside them.*
 
 When you use your company's ChatGPT Team account, everything the AI learns about you — your thinking style, your project vocabulary, your preferred level of detail, your judgment frameworks — lives inside that employer-managed workspace. It was built from *your* reasoning and expertise. But it lives in infrastructure someone else controls.
 
